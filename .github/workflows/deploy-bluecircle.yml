@@ -12,62 +12,75 @@ jobs:
         with:
           ref: claude/stoic-pasteur-jxj6p9
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Create env file
+        run: |
+          cat > .env.production << 'EOF'
+          NEXT_PUBLIC_SUPABASE_URL=https://phmztmwinuohlcgbgkgt.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+          REPLICATE_API_TOKEN=${{ secrets.REPLICATE_API_TOKEN }}
+          STRIPE_PRICE_ESSENTIEL=price_1TgJdI6X2FdrY3WEnoEm1T46
+          STRIPE_PRICE_ILLIMITE=price_1TgJdI6X2FdrY3WE9ZQxIi6w
+          STRIPE_PRICE_PREMIUM=price_1TgJdJ6X2FdrY3WEMKSq6gLU
+          STRIPE_PRICE_ELITE=price_1TgJdJ6X2FdrY3WEACorUdEv
+          STRIPE_WEBHOOK_SECRET=whsec_to_configure
+          EOF
+
       - name: Deploy to Vercel
         run: |
-          VTOKEN="${{ secrets.VERCEL_TOKEN }}"
+          TOKEN="${{ secrets.VERCEL_TOKEN }}"
 
-          PROJECTS=$(curl -s https://api.vercel.com/v9/projects \
-            -H "Authorization: Bearer $VTOKEN")
-          PROJECT_ID=$(echo "$PROJECTS" | jq -r '.projects[0].id // empty')
-          PROJECT_NAME=$(echo "$PROJECTS" | jq -r '.projects[0].name // empty')
+          # Pull org/user info
+          VERCEL_INFO=$(vercel whoami --token "$TOKEN" 2>&1)
+          echo "Vercel user: $VERCEL_INFO"
 
-          if [ -z "$PROJECT_ID" ]; then
-            echo "Creating Vercel project..."
-            NEWPROJ=$(curl -s -X POST https://api.vercel.com/v10/projects \
-              -H "Authorization: Bearer $VTOKEN" \
-              -H "Content-Type: application/json" \
-              -d '{"name":"blue-circle","framework":"nextjs","gitRepository":{"type":"github","repo":"tokkimi/webapp"}}')
-            PROJECT_ID=$(echo "$NEWPROJ" | jq -r '.id')
-            PROJECT_NAME="blue-circle"
-          fi
+          # Deploy (creates project automatically, --yes skips prompts)
+          DEPLOY_OUTPUT=$(vercel deploy \
+            --token "$TOKEN" \
+            --yes \
+            --name blue-circle \
+            --prod \
+            2>&1)
 
-          echo "Project: $PROJECT_NAME ($PROJECT_ID)"
-          APP_URL="https://${PROJECT_NAME}.vercel.app"
+          echo "$DEPLOY_OUTPUT"
+          DEPLOY_URL=$(echo "$DEPLOY_OUTPUT" | grep -oE 'https://[^ ]+\.vercel\.app' | tail -1)
+          echo "Deploy URL: $DEPLOY_URL"
 
+          # Now add env vars to the project
           add_env() {
-            curl -s -X POST "https://api.vercel.com/v10/projects/$PROJECT_ID/env" \
-              -H "Authorization: Bearer $VTOKEN" \
-              -H "Content-Type: application/json" \
-              -d "{\"key\":\"$1\",\"value\":\"$2\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\"]}" > /dev/null
-            echo "  Set $1"
+            echo "$2" | vercel env add "$1" production --token "$TOKEN" --yes 2>/dev/null && echo "Set $1" || echo "Skip $1 (may already exist)"
           }
 
-          add_env "NEXT_PUBLIC_SUPABASE_URL"      "https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co"
-          add_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "${{ secrets.SUPABASE_ANON_KEY }}"
-          add_env "SUPABASE_SERVICE_ROLE_KEY"     "${{ secrets.SUPABASE_SERVICE_KEY }}"
-          add_env "STRIPE_SECRET_KEY"             "${{ secrets.STRIPE_SECRET_KEY }}"
-          add_env "ANTHROPIC_API_KEY"             "${{ secrets.ANTHROPIC_API_KEY }}"
-          add_env "REPLICATE_API_TOKEN"           "${{ secrets.REPLICATE_API_TOKEN }}"
-          add_env "STRIPE_PRICE_ESSENTIEL"        "price_1TgJdI6X2FdrY3WEnoEm1T46"
-          add_env "STRIPE_PRICE_ILLIMITE"         "price_1TgJdI6X2FdrY3WE9ZQxIi6w"
-          add_env "STRIPE_PRICE_PREMIUM"          "price_1TgJdJ6X2FdrY3WEMKSq6gLU"
-          add_env "STRIPE_PRICE_ELITE"            "price_1TgJdJ6X2FdrY3WEACorUdEv"
-          add_env "NEXT_PUBLIC_APP_URL"           "$APP_URL"
-          add_env "STRIPE_WEBHOOK_SECRET"         "whsec_to_configure"
+          add_env NEXT_PUBLIC_SUPABASE_URL    "https://phmztmwinuohlcgbgkgt.supabase.co"
+          add_env NEXT_PUBLIC_SUPABASE_ANON_KEY "${{ secrets.SUPABASE_ANON_KEY }}"
+          add_env SUPABASE_SERVICE_ROLE_KEY   "${{ secrets.SUPABASE_SERVICE_KEY }}"
+          add_env STRIPE_SECRET_KEY           "${{ secrets.STRIPE_SECRET_KEY }}"
+          add_env ANTHROPIC_API_KEY           "${{ secrets.ANTHROPIC_API_KEY }}"
+          add_env REPLICATE_API_TOKEN         "${{ secrets.REPLICATE_API_TOKEN }}"
+          add_env STRIPE_PRICE_ESSENTIEL      "price_1TgJdI6X2FdrY3WEnoEm1T46"
+          add_env STRIPE_PRICE_ILLIMITE       "price_1TgJdI6X2FdrY3WE9ZQxIi6w"
+          add_env STRIPE_PRICE_PREMIUM        "price_1TgJdJ6X2FdrY3WEMKSq6gLU"
+          add_env STRIPE_PRICE_ELITE          "price_1TgJdJ6X2FdrY3WEACorUdEv"
+          add_env NEXT_PUBLIC_APP_URL         "$DEPLOY_URL"
+          add_env STRIPE_WEBHOOK_SECRET       "whsec_to_configure"
 
-          echo "All env vars set"
+          # Redeploy with env vars
+          FINAL=$(vercel deploy --token "$TOKEN" --yes --prod 2>&1)
+          echo "$FINAL"
+          FINAL_URL=$(echo "$FINAL" | grep -oE 'https://[^ ]+\.vercel\.app' | tail -1)
 
-          DEPLOY=$(curl -s -X POST https://api.vercel.com/v13/deployments \
-            -H "Authorization: Bearer $VTOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{\"name\":\"$PROJECT_NAME\",\"gitSource\":{\"type\":\"github\",\"repoId\":\"tokkimi/webapp\",\"ref\":\"claude/stoic-pasteur-jxj6p9\"}}")
-
-          DEPLOY_URL=$(echo "$DEPLOY" | jq -r '.url // empty')
           echo ""
           echo "==================================="
-          echo "BLUE CIRCLE DEPLOYE !"
-          echo "Site: $APP_URL"
-          if [ -n "$DEPLOY_URL" ]; then
-            echo "Preview: https://$DEPLOY_URL"
-          fi
+          echo "BLUE CIRCLE EST EN LIGNE !"
+          echo "Site: $FINAL_URL"
           echo "==================================="
