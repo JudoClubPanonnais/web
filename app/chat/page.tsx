@@ -144,7 +144,7 @@ export default function Chat() {
         const photoRes = await fetch('/api/generate-photo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ aiConfig }),
+          body: JSON.stringify({ aiConfig: { ...aiConfig, personality: aiConfig.personality } }),
         })
         const { url } = await photoRes.json()
         if (url) {

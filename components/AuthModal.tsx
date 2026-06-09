@@ -29,7 +29,7 @@ export default function AuthModal({ mode, lang, onClose, onSwitch }: AuthModalPr
       if (password !== confirm) { setError(fr ? 'Les mots de passe ne correspondent pas' : 'Passwords do not match'); setLoading(false); return }
       const { error: err } = await supabase.auth.signUp({
         email, password,
-        options: { data: { name }, emailRedirectTo: `${window.location.origin}/` },
+        options: { data: { name }, emailRedirectTo: `${window.location.origin}/auth/callback` },
       })
       if (err) { setError(err.message); setLoading(false); return }
       await supabase.from('profiles').upsert({ id: (await supabase.auth.getUser()).data.user?.id, name, email })
