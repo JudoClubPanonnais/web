@@ -12,44 +12,6 @@ jobs:
         with:
           ref: claude/stoic-pasteur-jxj6p9
 
-      - name: Create Stripe products
-        id: stripe
-        run: |
-          SK="${{ secrets.STRIPE_SECRET_KEY }}"
-
-          create_price() {
-            local name="$1" amount=$2
-            prod=$(curl -s -X POST https://api.stripe.com/v1/products \
-              -u "$SK:" \
-              --data-urlencode "name=$name" | jq -r '.id')
-            price=$(curl -s -X POST https://api.stripe.com/v1/prices \
-              -u "$SK:" \
-              -d "product=$prod" \
-              -d "unit_amount=$amount" \
-              -d "currency=eur" \
-              -d "recurring[interval]=month" | jq -r '.id')
-            echo "$price"
-          }
-
-          P1=$(create_price "Blue Circle Essentiel" 1900)
-          P2=$(create_price "Blue Circle Illimite" 3900)
-          P3=$(create_price "Blue Circle Premium" 7900)
-          P4=$(create_price "Blue Circle Elite" 19900)
-
-          echo "essentiel=$P1" >> $GITHUB_OUTPUT
-          echo "illimite=$P2"  >> $GITHUB_OUTPUT
-          echo "premium=$P3"   >> $GITHUB_OUTPUT
-          echo "elite=$P4"     >> $GITHUB_OUTPUT
-          echo "Stripe prices created: $P1 | $P2 | $P3 | $P4"
-
-      - name: Setup Supabase tables
-        run: |
-          sudo apt-get install -y postgresql-client -q 2>/dev/null
-          export PGPASSWORD="${{ secrets.SUPABASE_DB_PASSWORD }}"
-          psql "postgresql://postgres@db.${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co:5432/postgres" \
-            -f supabase/schema.sql
-          echo "Supabase tables OK"
-
       - name: Deploy to Vercel
         run: |
           VTOKEN="${{ secrets.VERCEL_TOKEN }}"
@@ -86,10 +48,10 @@ jobs:
           add_env "STRIPE_SECRET_KEY"             "${{ secrets.STRIPE_SECRET_KEY }}"
           add_env "ANTHROPIC_API_KEY"             "${{ secrets.ANTHROPIC_API_KEY }}"
           add_env "REPLICATE_API_TOKEN"           "${{ secrets.REPLICATE_API_TOKEN }}"
-          add_env "STRIPE_PRICE_ESSENTIEL"        "${{ steps.stripe.outputs.essentiel }}"
-          add_env "STRIPE_PRICE_ILLIMITE"         "${{ steps.stripe.outputs.illimite }}"
-          add_env "STRIPE_PRICE_PREMIUM"          "${{ steps.stripe.outputs.premium }}"
-          add_env "STRIPE_PRICE_ELITE"            "${{ steps.stripe.outputs.elite }}"
+          add_env "STRIPE_PRICE_ESSENTIEL"        "price_1TgJdI6X2FdrY3WEnoEm1T46"
+          add_env "STRIPE_PRICE_ILLIMITE"         "price_1TgJdI6X2FdrY3WE9ZQxIi6w"
+          add_env "STRIPE_PRICE_PREMIUM"          "price_1TgJdJ6X2FdrY3WEMKSq6gLU"
+          add_env "STRIPE_PRICE_ELITE"            "price_1TgJdJ6X2FdrY3WEACorUdEv"
           add_env "NEXT_PUBLIC_APP_URL"           "$APP_URL"
           add_env "STRIPE_WEBHOOK_SECRET"         "whsec_to_configure"
 
