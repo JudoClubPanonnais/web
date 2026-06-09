@@ -15,118 +15,57 @@ jobs:
       - name: Create Stripe products
         id: stripe
         run: |
+          SK="${{ secrets.STRIPE_SECRET_KEY }}"
+
           create_price() {
             local name="$1" amount=$2
             prod=$(curl -s -X POST https://api.stripe.com/v1/products \
-              -u "${{ secrets.STRIPE_SECRET_KEY }}:" \
+              -u "$SK:" \
               --data-urlencode "name=$name" | jq -r '.id')
             price=$(curl -s -X POST https://api.stripe.com/v1/prices \
-              -u "${{ secrets.STRIPE_SECRET_KEY }}:" \
+              -u "$SK:" \
               -d "product=$prod" \
               -d "unit_amount=$amount" \
               -d "currency=eur" \
               -d "recurring[interval]=month" | jq -r '.id')
-            echo $price
+            echo "$price"
           }
+
           P1=$(create_price "Blue Circle Essentiel" 1900)
           P2=$(create_price "Blue Circle Illimite" 3900)
           P3=$(create_price "Blue Circle Premium" 7900)
           P4=$(create_price "Blue Circle Elite" 19900)
+
           echo "essentiel=$P1" >> $GITHUB_OUTPUT
-          echo "illimite=$P2" >> $GITHUB_OUTPUT
-          echo "premium=$P3" >> $GITHUB_OUTPUT
-          echo "elite=$P4" >> $GITHUB_OUTPUT
-          echo "Stripe prices: $P1 $P2 $P3 $P4"
+          echo "illimite=$P2"  >> $GITHUB_OUTPUT
+          echo "premium=$P3"   >> $GITHUB_OUTPUT
+          echo "elite=$P4"     >> $GITHUB_OUTPUT
+          echo "Stripe prices created: $P1 | $P2 | $P3 | $P4"
 
       - name: Setup Supabase tables
         run: |
           sudo apt-get install -y postgresql-client -q 2>/dev/null
           export PGPASSWORD="${{ secrets.SUPABASE_DB_PASSWORD }}"
-          psql "postgresql://postgres@db.${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co:5432/postgres" << 'SQL'
-            create table if not exists profiles (
-              id uuid references auth.users primary key,
-              name text, email text, lang text default 'fr',
-              created_at timestamp default now()
-            );
-            create table if not exists subscriptions (
-              id uuid primary key default gen_random_uuid(),
-              user_id uuid references profiles(id),
-              stripe_customer_id text, stripe_subscription_id text,
-              plan_id text, status text, current_period_end timestamp,
-              created_at timestamp default now()
-            );
-            create table if not exists ai_config (
-              id uuid primary key default gen_random_uuid(),
-              user_id uuid references profiles(id),
-              gender text, personality text, hair text, eyes text, build text, style text,
-              updated_at timestamp default now()
-            );
-            create table if not exists conversations (
-              id uuid primary key default gen_random_uuid(),
-              user_id uuid references profiles(id),
-              ai_config_id uuid references ai_config(id),
-              started_at timestamp default now(), last_message_at timestamp
-            );
-            create table if not exists messages (
-              id uuid primary key default gen_random_uuid(),
-              conversation_id uuid references conversations(id),
-              role text, content text, type text default 'text',
-              image_url text, created_at timestamp default now()
-            );
-            create table if not exists notifications (
-              id uuid primary key default gen_random_uuid(),
-              user_id uuid references profiles(id),
-              title text, body text, read boolean default false,
-              created_at timestamp default now()
-            );
-            create table if not exists daily_usage (
-              id uuid primary key default gen_random_uuid(),
-              user_id uuid references profiles(id),
-              date date default current_date, seconds_used integer default 0,
-              unique(user_id, date)
-            );
-            alter table profiles enable row level security;
-            alter table subscriptions enable row level security;
-            alter table ai_config enable row level security;
-            alter table conversations enable row level security;
-            alter table messages enable row level security;
-            alter table notifications enable row level security;
-            alter table daily_usage enable row level security;
-            do $$ begin
-              if not exists (select 1 from pg_policies where tablename='profiles' and policyname='profiles_self') then
-                create policy profiles_self on profiles for all using (auth.uid() = id); end if;
-              if not exists (select 1 from pg_policies where tablename='subscriptions' and policyname='subs_self') then
-                create policy subs_self on subscriptions for all using (auth.uid() = user_id); end if;
-              if not exists (select 1 from pg_policies where tablename='ai_config' and policyname='ai_self') then
-                create policy ai_self on ai_config for all using (auth.uid() = user_id); end if;
-              if not exists (select 1 from pg_policies where tablename='conversations' and policyname='conv_self') then
-                create policy conv_self on conversations for all using (auth.uid() = user_id); end if;
-              if not exists (select 1 from pg_policies where tablename='messages' and policyname='msg_self') then
-                create policy msg_self on messages for all using (
-                  conversation_id in (select id from conversations where user_id = auth.uid())
-                ); end if;
-              if not exists (select 1 from pg_policies where tablename='notifications' and policyname='notif_self') then
-                create policy notif_self on notifications for all using (auth.uid() = user_id); end if;
-              if not exists (select 1 from pg_policies where tablename='daily_usage' and policyname='usage_self') then
-                create policy usage_self on daily_usage for all using (auth.uid() = user_id); end if;
-            end $$;
-SQL
+          psql "postgresql://postgres@db.${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co:5432/postgres" \
+            -f supabase/schema.sql
           echo "Supabase tables OK"
 
       - name: Deploy to Vercel
         run: |
           VTOKEN="${{ secrets.VERCEL_TOKEN }}"
 
-          PROJECTS=$(curl -s https://api.vercel.com/v9/projects -H "Authorization: Bearer $VTOKEN")
-          PROJECT_ID=$(echo $PROJECTS | jq -r '.projects[0].id // empty')
-          PROJECT_NAME=$(echo $PROJECTS | jq -r '.projects[0].name // empty')
+          PROJECTS=$(curl -s https://api.vercel.com/v9/projects \
+            -H "Authorization: Bearer $VTOKEN")
+          PROJECT_ID=$(echo "$PROJECTS" | jq -r '.projects[0].id // empty')
+          PROJECT_NAME=$(echo "$PROJECTS" | jq -r '.projects[0].name // empty')
 
           if [ -z "$PROJECT_ID" ]; then
+            echo "Creating Vercel project..."
             NEWPROJ=$(curl -s -X POST https://api.vercel.com/v10/projects \
               -H "Authorization: Bearer $VTOKEN" \
               -H "Content-Type: application/json" \
               -d '{"name":"blue-circle","framework":"nextjs","gitRepository":{"type":"github","repo":"tokkimi/webapp"}}')
-            PROJECT_ID=$(echo $NEWPROJ | jq -r '.id')
+            PROJECT_ID=$(echo "$NEWPROJ" | jq -r '.id')
             PROJECT_NAME="blue-circle"
           fi
 
@@ -138,33 +77,35 @@ SQL
               -H "Authorization: Bearer $VTOKEN" \
               -H "Content-Type: application/json" \
               -d "{\"key\":\"$1\",\"value\":\"$2\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\"]}" > /dev/null
-            echo "Set $1"
+            echo "  Set $1"
           }
 
-          add_env NEXT_PUBLIC_SUPABASE_URL "https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co"
-          add_env NEXT_PUBLIC_SUPABASE_ANON_KEY "${{ secrets.SUPABASE_ANON_KEY }}"
-          add_env SUPABASE_SERVICE_ROLE_KEY "${{ secrets.SUPABASE_SERVICE_KEY }}"
-          add_env STRIPE_SECRET_KEY "${{ secrets.STRIPE_SECRET_KEY }}"
-          add_env ANTHROPIC_API_KEY "${{ secrets.ANTHROPIC_API_KEY }}"
-          add_env REPLICATE_API_TOKEN "${{ secrets.REPLICATE_API_TOKEN }}"
-          add_env STRIPE_PRICE_ESSENTIEL "${{ steps.stripe.outputs.essentiel }}"
-          add_env STRIPE_PRICE_ILLIMITE "${{ steps.stripe.outputs.illimite }}"
-          add_env STRIPE_PRICE_PREMIUM "${{ steps.stripe.outputs.premium }}"
-          add_env STRIPE_PRICE_ELITE "${{ steps.stripe.outputs.elite }}"
-          add_env NEXT_PUBLIC_APP_URL "$APP_URL"
-          add_env STRIPE_WEBHOOK_SECRET "whsec_to_configure"
+          add_env "NEXT_PUBLIC_SUPABASE_URL"      "https://${{ secrets.SUPABASE_PROJECT_REF }}.supabase.co"
+          add_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "${{ secrets.SUPABASE_ANON_KEY }}"
+          add_env "SUPABASE_SERVICE_ROLE_KEY"     "${{ secrets.SUPABASE_SERVICE_KEY }}"
+          add_env "STRIPE_SECRET_KEY"             "${{ secrets.STRIPE_SECRET_KEY }}"
+          add_env "ANTHROPIC_API_KEY"             "${{ secrets.ANTHROPIC_API_KEY }}"
+          add_env "REPLICATE_API_TOKEN"           "${{ secrets.REPLICATE_API_TOKEN }}"
+          add_env "STRIPE_PRICE_ESSENTIEL"        "${{ steps.stripe.outputs.essentiel }}"
+          add_env "STRIPE_PRICE_ILLIMITE"         "${{ steps.stripe.outputs.illimite }}"
+          add_env "STRIPE_PRICE_PREMIUM"          "${{ steps.stripe.outputs.premium }}"
+          add_env "STRIPE_PRICE_ELITE"            "${{ steps.stripe.outputs.elite }}"
+          add_env "NEXT_PUBLIC_APP_URL"           "$APP_URL"
+          add_env "STRIPE_WEBHOOK_SECRET"         "whsec_to_configure"
+
+          echo "All env vars set"
 
           DEPLOY=$(curl -s -X POST https://api.vercel.com/v13/deployments \
             -H "Authorization: Bearer $VTOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"name\":\"$PROJECT_NAME\",\"gitSource\":{\"type\":\"github\",\"repoId\":\"tokkimi/webapp\",\"ref\":\"claude/stoic-pasteur-jxj6p9\"}}")
 
-          DEPLOY_URL=$(echo $DEPLOY | jq -r '.url // empty')
+          DEPLOY_URL=$(echo "$DEPLOY" | jq -r '.url // empty')
           echo ""
           echo "==================================="
-          echo "BLUE CIRCLE EST EN LIGNE !"
+          echo "BLUE CIRCLE DEPLOYE !"
           echo "Site: $APP_URL"
           if [ -n "$DEPLOY_URL" ]; then
-            echo "Deploy URL: https://$DEPLOY_URL"
+            echo "Preview: https://$DEPLOY_URL"
           fi
           echo "==================================="
