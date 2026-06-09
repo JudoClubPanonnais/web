@@ -1,0 +1,50 @@
+name: Setup Vercel Env Vars
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set all environment variables on Vercel
+        run: |
+          TOKEN="${{ secrets.VERCEL_TOKEN }}"
+          PROJECT_ID="prj_mohFw1zIwTRNT0r1EIMViL2QXLEb"
+
+          add_env() {
+            # Try to create, if conflict (409) update instead
+            RESULT=$(curl -s -o /tmp/env_result.json -w "%{http_code}" \
+              -X POST "https://api.vercel.com/v10/projects/$PROJECT_ID/env" \
+              -H "Authorization: Bearer $TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "{\"key\":\"$1\",\"value\":\"$2\",\"type\":\"encrypted\",\"target\":[\"production\",\"preview\",\"development\"]}")
+            if [ "$RESULT" = "409" ]; then
+              ENV_ID=$(curl -s "https://api.vercel.com/v10/projects/$PROJECT_ID/env" \
+                -H "Authorization: Bearer $TOKEN" | jq -r ".envs[] | select(.key==\"$1\") | .id")
+              curl -s -X PATCH "https://api.vercel.com/v10/projects/$PROJECT_ID/env/$ENV_ID" \
+                -H "Authorization: Bearer $TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "{\"value\":\"$2\"}" > /dev/null
+              echo "Updated $1"
+            else
+              echo "Set $1 (HTTP $RESULT)"
+            fi
+          }
+
+          add_env "NEXT_PUBLIC_SUPABASE_URL"      "https://phmztmwinuohlcgbgkgt.supabase.co"
+          add_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "${{ secrets.SUPABASE_ANON_KEY }}"
+          add_env "SUPABASE_SERVICE_ROLE_KEY"     "${{ secrets.SUPABASE_SERVICE_KEY }}"
+          add_env "STRIPE_SECRET_KEY"             "${{ secrets.STRIPE_SECRET_KEY }}"
+          add_env "ANTHROPIC_API_KEY"             "${{ secrets.ANTHROPIC_API_KEY }}"
+          add_env "REPLICATE_API_TOKEN"           "${{ secrets.REPLICATE_API_TOKEN }}"
+          add_env "STRIPE_PRICE_ESSENTIEL"        "price_1TgJdI6X2FdrY3WEnoEm1T46"
+          add_env "STRIPE_PRICE_ILLIMITE"         "price_1TgJdI6X2FdrY3WE9ZQxIi6w"
+          add_env "STRIPE_PRICE_PREMIUM"          "price_1TgJdJ6X2FdrY3WEMKSq6gLU"
+          add_env "STRIPE_PRICE_ELITE"            "price_1TgJdJ6X2FdrY3WEACorUdEv"
+          add_env "NEXT_PUBLIC_APP_URL"           "https://blue-circle-tau.vercel.app"
+          add_env "STRIPE_WEBHOOK_SECRET"         "whsec_to_configure"
+
+          echo "All env vars done. Triggering redeploy..."
+          curl -X POST "https://api.vercel.com/v1/integrations/deploy/prj_mohFw1zIwTRNT0r1EIMViL2QXLEb/51eSJ4r6tu"
+          echo "Redeploy triggered!"
