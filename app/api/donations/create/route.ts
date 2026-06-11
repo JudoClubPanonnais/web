@@ -21,7 +21,7 @@ const CAUSE_NAMES: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { amount, cause_slug, donor_name, donor_email, message, anonymous } = await req.json()
+    const { amount, cause_slug, donor_name, donor_email, message, anonymous, payment_method } = await req.json()
 
     if (!amount || amount < 100) {
       return NextResponse.json({ error: 'Montant minimum 1€' }, { status: 400 })
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
       donor_email: donor_email || null,
       message: message || null,
       anonymous: anonymous || false,
+      payment_method: payment_method || 'card',
       status: 'pending',
     }).select().single()
 

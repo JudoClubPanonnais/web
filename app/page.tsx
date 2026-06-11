@@ -210,6 +210,23 @@ export default function HomePage() {
                 )}
                 {anon && <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email pour le reçu fiscal (optionnel)" className="input-field" />}
               </div>
+              {/* Moyen de paiement */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Moyen de paiement</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { value: 'card', label: 'Carte bancaire' },
+                    { value: 'paypal', label: 'PayPal' },
+                    { value: 'transfer', label: 'Virement bancaire' },
+                  ].map(opt => (
+                    <button key={opt.value} type="button" onClick={() => setPaymentMethod(opt.value)}
+                      className={`py-2.5 px-3 rounded-xl border-2 font-medium text-sm transition-all text-center ${paymentMethod === opt.value ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="Un message pour le club ? (optionnel)" rows={3} className="input-field resize-none" />
 
               <button type="submit" disabled={!eff || eff < 1 || status === 'loading'}

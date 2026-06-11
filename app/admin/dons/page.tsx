@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 
-interface Don { id: string; donor_name: string; donor_email: string; amount: number; cause: string; message: string; anonymous: boolean; status: string; created_at: string }
+interface Don { id: string; donor_name: string; donor_email: string; amount: number; cause: string; message: string; anonymous: boolean; status: string; payment_method: string; created_at: string }
 
 export default function AdminDons() {
   const [dons, setDons] = useState<Don[]>([])
@@ -86,16 +86,16 @@ export default function AdminDons() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Date', 'Donateur', 'Email', 'Montant', 'Cause', 'Message', 'Statut'].map(h => (
+                {['Date', 'Donateur', 'Email', 'Montant', 'Cause', 'Paiement', 'Message', 'Statut'].map(h => (
                   <th key={h} className="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Chargement...</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Chargement...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400">Aucun don trouvé</td></tr>
+                <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400">Aucun don trouvé</td></tr>
               ) : filtered.map(d => (
                 <tr key={d.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(d.created_at).toLocaleDateString('fr-FR')}</td>
@@ -103,6 +103,14 @@ export default function AdminDons() {
                   <td className="px-4 py-3 text-gray-500">{d.anonymous ? '—' : d.donor_email || '—'}</td>
                   <td className="px-4 py-3 font-bold text-orange-500 whitespace-nowrap">{(d.amount/100).toLocaleString('fr-FR')} €</td>
                   <td className="px-4 py-3 text-gray-600">{d.cause || 'Don général'}</td>
+                  <td className="px-4 py-3">
+                    {(() => {
+                      const pm = d.payment_method || 'card'
+                      if (pm === 'paypal') return <span className="badge text-xs bg-blue-100 text-blue-700">PayPal</span>
+                      if (pm === 'transfer') return <span className="badge text-xs bg-purple-100 text-purple-700">Virement</span>
+                      return <span className="badge text-xs bg-gray-100 text-gray-600">Carte</span>
+                    })()}
+                  </td>
                   <td className="px-4 py-3 text-gray-500 max-w-xs truncate">{d.message || '—'}</td>
                   <td className="px-4 py-3">
                     <span className={`badge text-xs ${d.status === 'completed' ? 'bg-green-100 text-green-700' : d.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
