@@ -281,6 +281,36 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* GALERIE VIDÉOS */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">🎬 Le club en action</h2>
+            <p className="text-gray-500">Revivez l'ambiance de nos entraînements sur les tatamis de Bras Panon</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { src: '/media/videos/jcp-projection.mp4', poster: '/media/photos/thumb-projection.jpg', label: 'Technique de projection — Seniors' },
+              { src: '/media/videos/jcp-tatami.mp4', poster: '/media/photos/thumb-tatami.jpg', label: 'Combat au sol (ne-waza) — Entraînement' },
+              { src: '/media/videos/jcp-enfants.mp4', poster: '/media/photos/thumb-enfants.jpg', label: 'Baby Judo & Mini Poussins' },
+            ].map((v, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden shadow-lg bg-black group">
+                <video src={v.src} poster={v.poster} controls playsInline preload="metadata"
+                  className="w-full aspect-[9/16] object-cover">
+                  <source src={v.src} type="video/mp4" />
+                </video>
+                <div className="p-4 bg-gray-50">
+                  <p className="text-sm font-semibold text-[#1e3a5f]">{v.label}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-center mt-8">
+            <Link href="/presse" className="btn-secondary">Voir toutes les photos & vidéos →</Link>
+          </div>
+        </div>
+      </section>
+
       {/* NEWSLETTER */}
       <section className="py-16 bg-orange-500 text-white">
         <div className="max-w-2xl mx-auto px-4 text-center">
