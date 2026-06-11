@@ -1,248 +1,302 @@
 'use client'
-export const dynamic = 'force-dynamic'
 import { useState, useEffect } from 'react'
-import AgeGate from '@/components/AgeGate'
-import Navbar from '@/components/Navbar'
-import AuthModal from '@/components/AuthModal'
-import BottomNav from '@/components/BottomNav'
-import { createSupabaseBrowserClient } from '@/lib/supabase'
-import { PLANS } from '@/lib/stripe'
+import Link from 'next/link'
+import Image from 'next/image'
 
-export default function Home() {
-  const [ageVerified, setAgeVerified] = useState<boolean | null>(null)
-  const [lang, setLang] = useState('fr')
-  const [authMode, setAuthMode] = useState<'login' | 'register' | null>(null)
-  const [user, setUser] = useState<any>(null)
-  const [cgvOpen, setCgvOpen] = useState(false)
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
-  const supabase = createSupabaseBrowserClient()
+const CAUSES = [
+  { slug: 'lutte-delinquance', name: 'Lutte contre la délinquance', icon: '🚨', goal: 3500, raised: 0, color: 'from-red-500 to-red-700', desc: 'Offrir aux jeunes en rupture une alternative structurante via le judo.' },
+  { slug: 'perseverance-scolaire', name: 'Persévérance scolaire', icon: '📚', goal: 2800, raised: 0, color: 'from-blue-500 to-blue-700', desc: 'Le judo apprend à tomber et se relever. Cette résilience se transfère en classe.' },
+  { slug: 'inclusion-autisme', name: 'Inclusion autisme & sport', icon: '🤝', goal: 4200, raised: 0, color: 'from-purple-500 to-purple-700', desc: 'Le tatami offre un cadre prévisible et un sentiment de compétence réel.' },
+  { slug: 'violences-femmes', name: 'Violences faites aux femmes', icon: '💜', goal: 3000, raised: 0, color: 'from-pink-500 to-pink-700', desc: "L'autodéfense est un droit. Reprendre le contrôle de son corps." },
+  { slug: 'decouverte-ailleurs', name: "Découverte de l'ailleurs", icon: '✈️', goal: 5000, raised: 0, color: 'from-emerald-500 to-emerald-700', desc: "Le judo est une langue universelle. Partout où on pose un tatami, on se comprend." },
+]
+
+const AMOUNTS = [10, 25, 50, 100, 250, 500]
+const IMPACTS: Record<number, string> = {
+  10: "Finance une séance pour un jeune",
+  50: "Finance un stage d'autodéfense",
+  100: "Finance un trimestre inclusif",
+  250: "Finance une place de voyage solidaire",
+  500: "Finance une action complète",
+}
+
+export default function HomePage() {
+  const [causes, setCauses] = useState(CAUSES)
+  const [sorted, setSorted] = useState(CAUSES)
+  const [selCause, setSelCause] = useState('')
+  const [amount, setAmount] = useState<number>(0)
+  const [custom, setCustom] = useState('')
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [msg, setMsg] = useState('')
+  const [anon, setAnon] = useState(false)
+  const [status, setStatus] = useState<'idle'|'loading'|'error'>('idle')
 
   useEffect(() => {
-    const verified = localStorage.getItem('age_verified')
-    setAgeVerified(!!verified)
-    const savedLang = localStorage.getItem('lang') || 'fr'
-    setLang(savedLang)
-    supabase.auth.getUser().then(({ data }: any) => setUser(data.user))
+    fetch('/api/causes').then(r => r.json()).then(d => {
+      if (d.causes) {
+        const m = CAUSES.map(c => {
+          const x = d.causes.find((i: { slug: string; collected_amount: number }) => i.slug === c.slug)
+          return x ? { ...c, raised: Math.round(x.collected_amount / 100) } : c
+        })
+        setCauses(m)
+        setSorted([...m].sort((a, b) => b.raised - a.raised))
+      }
+    }).catch(() => {})
   }, [])
 
-  function toggleLang() {
-    const newLang = lang === 'fr' ? 'en' : 'fr'
-    setLang(newLang)
-    localStorage.setItem('lang', newLang)
-  }
+  const eff = custom ? parseInt(custom) || 0 : amount
+  const impactKey = [500, 250, 100, 50, 10].find(k => eff >= k)
 
-  async function handlePlanClick(planId: string) {
-    if (!user) { setAuthMode('register'); return }
-    setLoadingPlan(planId)
+  async function donate(e: React.FormEvent) {
+    e.preventDefault()
+    if (!eff || eff < 1) return
+    setStatus('loading')
     try {
-      const res = await fetch('/api/stripe/checkout', {
+      const res = await fetch('/api/donations/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ amount: eff * 100, cause_slug: selCause || null, donor_name: anon ? 'Anonyme' : name, donor_email: email, message: msg, anonymous: anon }),
       })
-      const { url } = await res.json()
-      if (url) window.location.href = url
-    } catch {
-      setLoadingPlan(null)
-    }
+      const d = await res.json()
+      if (d.url) window.location.href = d.url
+      else setStatus('error')
+    } catch { setStatus('error') }
   }
-
-  const fr = lang === 'fr'
-
-  if (ageVerified === null) return null
-  if (!ageVerified) return <AgeGate lang={lang} onConfirm={() => setAgeVerified(true)} />
 
   return (
     <>
-      <Navbar lang={lang} onLangToggle={toggleLang} onOpenLogin={() => setAuthMode('login')} onOpenRegister={() => setAuthMode('register')} />
-      {authMode && (
-        <AuthModal mode={authMode} lang={lang} onClose={() => setAuthMode(null)} onSwitch={setAuthMode} />
-      )}
-
-      {/* Hero */}
-      <section className="fade-up" style={{
-        minHeight: 'calc(100vh - 60px)', marginTop: 60,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '60px 24px', textAlign: 'center', position: 'relative', overflow: 'hidden',
-        background: 'radial-gradient(ellipse at 20% 50%, rgba(27,110,243,0.12) 0%, transparent 60%), radial-gradient(ellipse at 80% 50%, rgba(108,99,255,0.08) 0%, transparent 60%)',
-      }}>
-        {/* Orbe central */}
-        <div className="orb-breathe" style={{
-          position: 'absolute', width: 600, height: 600, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(27,110,243,0.06) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-
-        {/* Badge animé */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 32,
-          background: 'rgba(27,110,243,0.1)', border: '1px solid rgba(27,110,243,0.3)',
-          borderRadius: 100, padding: '6px 16px',
-        }}>
-          <span className="dot-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: '#1B6EF3', display: 'inline-block' }} />
-          <span style={{ fontSize: 13, color: '#93C5FD', fontFamily: 'DM Sans, sans-serif' }}>
-            {fr ? 'Expérience IA de compagnie intime' : 'Intimate AI companion experience'}
-          </span>
+      {/* HERO */}
+      <section className="relative bg-gradient-to-br from-[#0f1f33] via-[#1e3a5f] to-[#0f1f33] text-white overflow-hidden">
+        <div className="absolute inset-0 opacity-10 pointer-events-none">
+          <div className="absolute top-20 left-10 w-96 h-96 bg-orange-500 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-500 rounded-full blur-3xl" />
         </div>
-
-        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(36px, 6vw, 72px)', fontWeight: 700, lineHeight: 1.15, marginBottom: 20, maxWidth: 700 }}>
-          {fr ? <>L'intimité <em style={{ color: 'var(--accent)', fontStyle: 'italic' }}>réinventée</em></> : <>Intimacy <em style={{ color: 'var(--accent)', fontStyle: 'italic' }}>reinvented</em></>}
-        </h1>
-        <p style={{ color: 'var(--text2)', fontSize: 18, maxWidth: 500, lineHeight: 1.6, marginBottom: 40 }}>
-          {fr
-            ? 'Découvrez une connexion authentique avec une IA de compagnie conçue pour vous.'
-            : 'Experience an authentic connection with an AI companion designed for you.'}
-        </p>
-
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <button onClick={() => setAuthMode('register')} style={{
-            background: 'var(--accent)', border: 'none', borderRadius: 10,
-            color: '#fff', padding: '16px 32px', fontFamily: 'DM Sans, sans-serif',
-            fontWeight: 500, fontSize: 16, cursor: 'pointer', transition: 'all 0.2s ease',
-            boxShadow: '0 0 40px rgba(27,110,243,0.25)',
-          }}
-            onMouseEnter={e => { (e.target as HTMLButtonElement).style.transform = 'translateY(-1px)'; (e.target as HTMLButtonElement).style.background = '#2979ff' }}
-            onMouseLeave={e => { (e.target as HTMLButtonElement).style.transform = 'none'; (e.target as HTMLButtonElement).style.background = 'var(--accent)' }}>
-            {fr ? 'Commencer maintenant' : 'Start now'}
-          </button>
-          <button onClick={() => setAuthMode('login')} style={{
-            background: 'transparent', border: '1px solid var(--border)', borderRadius: 10,
-            color: 'var(--text)', padding: '16px 32px', fontFamily: 'DM Sans, sans-serif',
-            fontWeight: 500, fontSize: 16, cursor: 'pointer', transition: 'all 0.2s ease',
-          }}
-            onMouseEnter={e => (e.target as HTMLButtonElement).style.borderColor = '#fff'}
-            onMouseLeave={e => (e.target as HTMLButtonElement).style.borderColor = 'var(--border)'}>
-            {fr ? 'Se connecter' : 'Sign in'}
-          </button>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-orange-500/20 border border-orange-500/30 rounded-full px-4 py-1.5 text-orange-300 text-sm font-medium mb-6">
+                <span className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+                Bras Panon — Île de La Réunion
+              </div>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">
+                Le tatami comme<br /><span className="text-orange-400">levier de<br />changement</span>
+              </h1>
+              <p className="text-lg text-gray-300 mb-8 leading-relaxed max-w-lg">
+                Le Judo Club Panonnais porte 5 causes sociales essentielles.
+                Soutenez notre projet pédagogique 2026 et transformez des vies.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Link href="#don" className="btn-primary text-base py-3.5 px-7">❤️ Faire un don</Link>
+                <Link href="#causes" className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-white/30 text-white hover:bg-white/10 font-semibold rounded-xl transition-all text-base">Nos 5 causes →</Link>
+              </div>
+              <div className="flex gap-8 mt-10">
+                {[['80+','Pratiquants'],['5','Causes'],['2017','Création']].map(([v,l]) => (
+                  <div key={l}><div className="text-3xl font-black text-orange-400">{v}</div><div className="text-gray-400 text-sm">{l}</div></div>
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-orange-500/20 rounded-full blur-2xl" />
+                <Image src="/logo-jcp.jpg" alt="Judo Club Panonnais" width={340} height={340} className="relative rounded-full shadow-2xl border-4 border-white/20 object-cover" />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Plans */}
-      <section id="plans" style={{ padding: '80px 24px', maxWidth: 1200, margin: '0 auto' }}>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 40, textAlign: 'center', marginBottom: 16 }}>
-          {fr ? 'Choisissez votre expérience' : 'Choose your experience'}
-        </h2>
-        <p style={{ color: 'var(--text2)', textAlign: 'center', marginBottom: 48, fontSize: 16 }}>
-          {fr ? 'Des formules adaptées à vos envies' : 'Plans tailored to your desires'}
-        </p>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 24,
-        }}>
-          {Object.values(PLANS).map(plan => (
-            <PlanCard key={plan.id} plan={plan} lang={lang} loading={loadingPlan === plan.id} onClick={() => handlePlanClick(plan.id)} />
-          ))}
+      {/* BANDEAU STATS */}
+      <section className="bg-orange-500 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-white text-center">
+            {[['🥋','Affilié FFJDA','Fédération Française de Judo'],['📍','Bras Panon','Est de La Réunion'],['🏅','Loi 1901','Association officielle'],['💸','100%','Reversé aux projets']].map(([i,t,s]) => (
+              <div key={t}><div className="text-xl mb-0.5">{i}</div><div className="font-bold">{t}</div><div className="text-orange-100 text-xs">{s}</div></div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{
-        borderTop: '1px solid var(--border)', padding: '40px 24px',
-        textAlign: 'center', color: 'var(--text3)', fontSize: 12,
-      }}>
-        © 2025 Blue Circle SAS ·{' '}
-        <button onClick={() => setCgvOpen(true)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 12, textDecoration: 'underline' }}>CGV</button>
-        {' · '}
-        <a href="mailto:contact@bluecircle.app" style={{ color: 'var(--text3)' }}>contact@bluecircle.app</a>
-        {' · '}
-        {fr ? 'Réservé aux +18 ans' : 'Adults 18+ only'}
-      </footer>
+      {/* CLASSEMENT CAUSES */}
+      <section id="causes" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">🏆 Classement en direct des causes</h2>
+            <p className="text-gray-500 max-w-xl mx-auto">Chaque don est fléché vers la cause choisie. Classement mis à jour en temps réel.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {sorted.map((c, idx) => {
+              const pct = Math.min(100, c.goal > 0 ? Math.round((c.raised / c.goal) * 100) : 0)
+              return (
+                <Link href={`/causes/${c.slug}`} key={c.slug} className="card p-6 hover:-translate-y-1 transition-all duration-300 group">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${c.color} flex items-center justify-center text-2xl`}>{c.icon}</div>
+                    <span className="text-3xl font-black text-gray-100 group-hover:text-gray-200">#{idx+1}</span>
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-2 text-lg group-hover:text-orange-500 transition-colors">{c.name}</h3>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">{c.desc}</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold text-gray-700">{c.raised.toLocaleString('fr-FR')} €</span>
+                      <span className="text-gray-400">/ {c.goal.toLocaleString('fr-FR')} €</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className={`h-full bg-gradient-to-r ${c.color} rounded-full`} style={{ width: `${pct}%` }} />
+                    </div>
+                    <div className="text-xs text-gray-400">{pct}% atteint</div>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+          <div className="text-center">
+            <p className="text-gray-500 text-sm mb-4">Objectif global : <strong className="text-[#1e3a5f]">40 000 €</strong></p>
+            <Link href="#don" className="btn-primary">Soutenir une cause →</Link>
+          </div>
+        </div>
+      </section>
 
-      {cgvOpen && <CGVModal lang={lang} onClose={() => setCgvOpen(false)} />}
+      {/* DON */}
+      <section id="don" className="py-20 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">❤️ Faire un don</h2>
+            <p className="text-gray-500">100% reversé au projet. Reçu fiscal automatique.</p>
+          </div>
+          <div className="card p-8">
+            <form onSubmit={donate} className="space-y-6">
+              {/* Cause */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Choisissez une cause (optionnel)</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[{slug:'',name:'🌟 Don général (toutes causes)',icon:''},...causes].map(c => (
+                    <button key={c.slug} type="button" onClick={() => setSelCause(c.slug)}
+                      className={`p-3 rounded-xl border-2 text-sm font-medium text-left transition-all ${selCause === c.slug ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+                      {c.slug ? `${c.icon} ${c.name}` : c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-      {user && <BottomNav lang={lang} />}
-    </>
-  )
-}
+              {/* Montant */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Montant de votre don</label>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-3">
+                  {AMOUNTS.map(a => (
+                    <button key={a} type="button" onClick={() => { setAmount(a); setCustom('') }}
+                      className={`py-2.5 rounded-xl border-2 font-semibold text-sm transition-all ${amount === a && !custom ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}>
+                      {a} €
+                    </button>
+                  ))}
+                </div>
+                <div className="relative">
+                  <input type="number" value={custom} onChange={e => { setCustom(e.target.value); setAmount(0) }}
+                    placeholder="Autre montant" min="1" className="input-field pr-10" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">€</span>
+                </div>
+                {eff >= 10 && impactKey && <p className="text-sm text-green-600 mt-2 font-medium">✅ {IMPACTS[impactKey]}</p>}
+                {eff >= 10 && <p className="text-xs text-blue-600 mt-1">💡 Avantage fiscal : {Math.round(eff*0.66)} € remboursés (66% pour les particuliers)</p>}
+              </div>
 
-function PlanCard({ plan, lang, loading, onClick }: { plan: any; lang: string; loading: boolean; onClick: () => void }) {
-  const [hovered, setHovered] = useState(false)
-  const fr = lang === 'fr'
+              {/* Identité */}
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <input type="checkbox" id="anon" checked={anon} onChange={e => setAnon(e.target.checked)} className="w-4 h-4 accent-orange-500" />
+                  <label htmlFor="anon" className="text-sm text-gray-600">Don anonyme</label>
+                </div>
+                {!anon && (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Votre nom (optionnel)" className="input-field" />
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email (reçu fiscal)" className="input-field" />
+                  </div>
+                )}
+                {anon && <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email pour le reçu fiscal (optionnel)" className="input-field" />}
+              </div>
+              <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="Un message pour le club ? (optionnel)" rows={3} className="input-field resize-none" />
 
-  return (
-    <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      style={{
-        background: plan.popular
-          ? 'linear-gradient(135deg, rgba(108,99,255,0.08) 0%, var(--surface) 100%)'
-          : 'var(--surface)',
-        border: `1px solid ${hovered ? 'var(--accent)' : plan.popular ? 'var(--accent2)' : 'var(--border)'}`,
-        borderRadius: 20, padding: '32px 24px', position: 'relative',
-        transform: hovered ? 'translateY(-4px)' : 'none',
-        boxShadow: hovered ? '0 0 40px rgba(27,110,243,0.25)' : 'none',
-        transition: 'all 0.2s ease',
-      }}>
-      {plan.popular && (
-        <div style={{
-          textAlign: 'center', marginBottom: 16,
-        }}>
-          <span style={{
-            background: 'linear-gradient(135deg, var(--accent2), var(--accent))',
-            borderRadius: 100, padding: '4px 14px', fontSize: 11,
-            fontFamily: 'DM Sans, sans-serif', fontWeight: 600, color: '#fff',
+              <button type="submit" disabled={!eff || eff < 1 || status === 'loading'}
+                className="btn-primary w-full py-4 text-base disabled:opacity-50 disabled:cursor-not-allowed">
+                {status === 'loading' ? 'Redirection...' : `Donner ${eff ? eff+' €' : ''} →`}
+              </button>
+              {status === 'error' && <p className="text-red-500 text-sm text-center">Une erreur est survenue.</p>}
+              <p className="text-xs text-gray-400 text-center">Paiement sécurisé par Stripe. 100% reversé au projet.</p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* DÉFISCALISATION */}
+      <section className="py-16 bg-[#1e3a5f] text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-10 items-center">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold mb-4">Défiscalisez votre don</h2>
+              <p className="text-gray-300 mb-6">Association d'intérêt général — vos dons ouvrent droit à des avantages fiscaux importants.</p>
+              <div className="space-y-4">
+                {[['👤','Particuliers','66% du don déductible de l\'impôt sur le revenu'],['🏢','Entreprises (mécénat)','60% du don déductible de l\'IS (art. 238 bis CGI)']].map(([i,t,d]) => (
+                  <div key={t} className="flex items-start gap-3 bg-white/10 rounded-xl p-4">
+                    <span className="text-2xl">{i}</span>
+                    <div><div className="font-semibold">{t}</div><div className="text-gray-300 text-sm">{d}</div></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="bg-white/10 rounded-2xl p-8">
+                <div className="text-5xl font-black text-orange-400 mb-2">40 000 €</div>
+                <div className="text-gray-300 mb-4">Objectif de collecte 2026</div>
+                <div className="text-sm text-gray-400">Reçu fiscal automatique par email après chaque don.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* VALEURS */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-6">Notre démarche pédagogique</h2>
+              <p className="text-gray-600 leading-relaxed mb-6">
+                Fondé en 1882 par Jigoro Kano, le judo repose sur deux principes : l'utilisation optimale de l'énergie et la prospérité mutuelle.
+                Notre dojo accueille plus de 80 pratiquants de tous âges dans une ambiance familiale, exigeante et bienveillante.
+              </p>
+              <blockquote className="border-l-4 border-orange-500 pl-6 italic text-gray-600 mb-6">
+                "Le judo m'a appris que la chute n'est pas une fin — c'est un début. Aujourd'hui, je veux que notre club soit ce tatami pour chaque enfant, chaque femme, chaque personne qui en a besoin."
+                <footer className="mt-2 text-sm font-semibold not-italic text-[#1e3a5f]">— La présidente du JCP</footer>
+              </blockquote>
+              <Link href="/inscription" className="btn-navy">Rejoindre le club →</Link>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {[['🤝','Respect','De l\'autre, de soi, des règles'],['💪','Persévérance','Tomber, se relever, recommencer'],['📚','Discipline','La rigueur du dojo dans la vie'],['👥','Entraide','On grandit avec l\'autre']].map(([i,t,d]) => (
+                <div key={t} className="card p-5 text-center">
+                  <div className="text-3xl mb-2">{i}</div>
+                  <div className="font-bold text-[#1e3a5f] mb-1">{t}</div>
+                  <div className="text-gray-500 text-sm">{d}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* NEWSLETTER */}
+      <section className="py-16 bg-orange-500 text-white">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <h2 className="text-3xl font-black mb-4">Restez informé de nos actions</h2>
+          <p className="text-orange-100 mb-8">Résultats des collectes, actualités du club, événements à venir...</p>
+          <form className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto" onSubmit={async e => {
+            e.preventDefault()
+            const fd = new FormData(e.currentTarget)
+            await fetch('/api/newsletter/subscribe', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: fd.get('email') }) })
+            ;(e.target as HTMLFormElement).reset()
           }}>
-            {fr ? 'Populaire' : 'Popular'}
-          </span>
+            <input name="email" type="email" required placeholder="votre@email.fr" className="flex-1 px-5 py-3 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-white text-base" />
+            <button type="submit" className="btn-navy py-3 px-6 whitespace-nowrap">S'inscrire</button>
+          </form>
         </div>
-      )}
-      <div style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text3)', marginBottom: 12, fontFamily: 'DM Sans, sans-serif' }}>
-        {plan.name}
-      </div>
-      <div style={{ fontFamily: 'Playfair Display, serif', fontSize: 44, fontWeight: 700, marginBottom: 4 }}>
-        {plan.price}€
-      </div>
-      <div style={{ color: 'var(--text3)', fontSize: 13, marginBottom: 24 }}>{fr ? '/ mois' : '/ month'}</div>
-      <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
-        {plan.features.map((f: string) => (
-          <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text2)', fontSize: 14 }}>
-            <span style={{ color: 'var(--accent)' }}>✦</span> {f}
-          </li>
-        ))}
-      </ul>
-      <button onClick={onClick} disabled={loading} style={{
-        width: '100%', background: plan.popular ? 'var(--accent2)' : 'var(--accent)',
-        border: 'none', borderRadius: 10, color: '#fff', padding: '12px',
-        fontFamily: 'DM Sans, sans-serif', fontWeight: 500, fontSize: 14,
-        cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
-        transition: 'all 0.2s ease',
-      }}>
-        {loading ? '...' : (fr ? 'Choisir ce plan' : 'Choose this plan')}
-      </button>
-    </div>
-  )
-}
-
-function CGVModal({ lang, onClose }: { lang: string; onClose: () => void }) {
-  const fr = lang === 'fr'
-  return (
-    <div onClick={onClose} style={{
-      position: 'fixed', inset: 0, zIndex: 300,
-      background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
-    }}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: 'var(--surface)', border: '1px solid var(--border)',
-        borderRadius: 20, padding: 40, maxWidth: 600, width: '100%',
-        maxHeight: '80vh', overflowY: 'auto', position: 'relative',
-      }}>
-        <button onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--text2)', fontSize: 20, cursor: 'pointer' }}>✕</button>
-        <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 24, marginBottom: 20 }}>
-          {fr ? 'Conditions Générales de Vente' : 'Terms and Conditions'}
-        </h2>
-        <div style={{ color: 'var(--text2)', fontSize: 14, lineHeight: 1.7 }}>
-          <p><strong style={{ color: 'var(--text)' }}>Blue Circle SAS</strong> — TVA FR12345678900</p>
-          <br />
-          <p>Les présentes CGV régissent l'utilisation des services Blue Circle. En vous inscrivant, vous acceptez ces conditions.</p>
-          <br />
-          <p><strong style={{ color: 'var(--text)' }}>Abonnements</strong> : Les abonnements sont mensuels et renouvelés automatiquement. Vous pouvez résilier à tout moment depuis votre profil.</p>
-          <br />
-          <p><strong style={{ color: 'var(--text)' }}>Droit de rétractation</strong> : Vous disposez de 14 jours à compter de la souscription pour exercer votre droit de rétractation, sauf si vous avez commencé à utiliser le service.</p>
-          <br />
-          <p><strong style={{ color: 'var(--text)' }}>Données personnelles</strong> : Vos données sont traitées conformément au RGPD. Nous ne revendons jamais vos données.</p>
-          <br />
-          <p>Contact : <a href="mailto:contact@bluecircle.app" style={{ color: 'var(--accent)' }}>contact@bluecircle.app</a></p>
-        </div>
-      </div>
-    </div>
+      </section>
+    </>
   )
 }

@@ -1,28 +1,24 @@
-export default function Confidentialite() {
+export default function ConfidentialitePage() {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', padding: '80px 24px' }}>
-      <div style={{ maxWidth: 700, margin: '0 auto' }}>
-        <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 36, marginBottom: 32 }}>
-          Politique de Confidentialité
-        </h1>
-        <div style={{ color: 'var(--text2)', lineHeight: 1.8, fontSize: 15 }}>
-          <h2 style={{ color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', marginBottom: 8, marginTop: 24 }}>Données collectées</h2>
-          <p>Prénom, adresse email, préférences de personnalisation, historique des conversations, données de facturation (gérées par Stripe).</p>
-
-          <h2 style={{ color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', marginBottom: 8, marginTop: 24 }}>Durée de conservation</h2>
-          <p>Les données de compte sont conservées pendant la durée de votre abonnement, puis 3 ans à des fins légales. L'historique des conversations peut être supprimé sur demande.</p>
-
-          <h2 style={{ color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', marginBottom: 8, marginTop: 24 }}>Vos droits (RGPD)</h2>
-          <p>Vous disposez d'un droit d'accès, de rectification, d'effacement, de portabilité et d'opposition. Pour exercer ces droits, contactez-nous à <a href="mailto:contact@bluecircle.app" style={{ color: 'var(--accent)' }}>contact@bluecircle.app</a>.</p>
-
-          <h2 style={{ color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', marginBottom: 8, marginTop: 24 }}>Partage des données</h2>
-          <p>Nous ne revendons jamais vos données. Elles peuvent être partagées avec nos prestataires (Supabase, Stripe, Anthropic, Replicate) dans le strict cadre de la fourniture du service.</p>
-
-          <h2 style={{ color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', marginBottom: 8, marginTop: 24 }}>Cookies</h2>
-          <p>Nous utilisons des cookies de session pour l'authentification. Aucun cookie publicitaire n'est utilisé.</p>
-
-          <p style={{ marginTop: 32, color: 'var(--text3)', fontSize: 13 }}>Dernière mise à jour : Janvier 2025</p>
-        </div>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <h1 className="text-3xl font-black text-[#1e3a5f] mb-2">Politique de confidentialité</h1>
+      <p className="text-gray-500 mb-10">Conformément au RGPD (Règlement UE 2016/679)</p>
+      <div className="space-y-8 text-gray-600">
+        {[
+          ['Responsable du traitement', 'Judo Club Panonnais — contact@judoclubpanonnais.fr'],
+          ['Données collectées', 'Lors de vos interactions avec notre site, nous collectons :\n• Inscriptions : nom, prénom, email, téléphone, date de naissance, informations médicales\n• Dons : nom (optionnel), email, montant, cause choisie\n• Newsletter : email, prénom (optionnel)\n• Navigation : pages visitées (analytics anonymes)'],
+          ['Finalités du traitement', '• Gestion administrative des inscriptions aux cours\n• Traitement des dons et émission de reçus fiscaux\n• Envoi de la newsletter (avec consentement)\n• Statistiques anonymes d\'utilisation du site'],
+          ['Base légale', '• Exécution d\'un contrat (inscriptions)\n• Obligation légale (reçus fiscaux)\n• Consentement (newsletter, analytics)\n• Intérêt légitime (gestion associative)'],
+          ['Durée de conservation', '• Données d\'inscription : durée de l\'adhésion + 5 ans\n• Données de don : 10 ans (obligation comptable)\n• Newsletter : jusqu\'à désinscription'],
+          ['Vos droits', 'Conformément au RGPD, vous disposez des droits suivants :\n• Droit d\'accès à vos données\n• Droit de rectification\n• Droit à l\'effacement\n• Droit à la portabilité\n• Droit d\'opposition\n\nPour exercer ces droits : contact@judoclubpanonnais.fr'],
+          ['Sécurité', 'Les paiements sont traités par Stripe (certifié PCI DSS). Aucune donnée bancaire n\'est stockée sur nos serveurs. Les données sont hébergées sur des serveurs sécurisés en Europe.'],
+          ['Cookies', 'Ce site utilise uniquement des cookies techniques essentiels au fonctionnement et des cookies d\'analytics anonymisés. Aucun cookie publicitaire n\'est utilisé.'],
+        ].map(([title, content]) => (
+          <div key={String(title)} className="border-b border-gray-100 pb-8">
+            <h2 className="text-xl font-bold text-[#1e3a5f] mb-3">{title}</h2>
+            <p className="leading-relaxed whitespace-pre-line">{content}</p>
+          </div>
+        ))}
       </div>
     </div>
   )

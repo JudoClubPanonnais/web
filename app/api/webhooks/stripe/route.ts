@@ -21,13 +21,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  const supabase = getAdminSupabase()
+  const db = getAdminSupabase()
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const { user_id, plan_id } = session.metadata!
     const subscription = await getStripe().subscriptions.retrieve(session.subscription as string)
-    await supabase.from('subscriptions').upsert({
+    await db.from('subscriptions').upsert({
       user_id,
       stripe_customer_id: session.customer as string,
       stripe_subscription_id: subscription.id,
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       status: 'active',
       current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
     })
-    await supabase.from('notifications').insert({
+    await db.from('notifications').insert({
       user_id,
       title: 'Abonnement activé',
       body: `Votre abonnement ${plan_id} est maintenant actif. Bienvenue !`,
@@ -44,12 +44,12 @@ export async function POST(req: NextRequest) {
 
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object as Stripe.Subscription
-    await supabase.from('subscriptions').update({ status: 'canceled' }).eq('stripe_subscription_id', sub.id)
+    await db.from('subscriptions').update({ status: 'canceled' }).eq('stripe_subscription_id', sub.id)
   }
 
   if (event.type === 'invoice.payment_failed') {
     const invoice = event.data.object as Stripe.Invoice
-    await supabase.from('subscriptions').update({ status: 'past_due' }).eq('stripe_customer_id', invoice.customer as string)
+    await db.from('subscriptions').update({ status: 'past_due' }).eq('stripe_customer_id', invoice.customer as string)
   }
 
   return NextResponse.json({ received: true })

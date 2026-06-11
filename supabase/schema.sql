@@ -1,91 +1,193 @@
--- Profils utilisateurs
-create table if not exists profiles (
-  id uuid references auth.users primary key,
-  name text,
-  email text,
-  lang text default 'fr',
+-- ================================================
+-- JUDO CLUB PANONNAIS — Schéma base de données
+-- ================================================
+
+-- Causes / projets
+create table if not exists causes (
+  id uuid primary key default gen_random_uuid(),
+  slug text unique not null,
+  name text not null,
+  short_desc text,
+  description text,
+  icon text,
+  goal_amount integer default 0,
+  collected_amount integer default 0,
+  color text default '#1e3a5f',
+  sort_order integer default 0,
   created_at timestamp default now()
 );
 
--- Abonnements
-create table if not exists subscriptions (
+-- Dons
+create table if not exists donations (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references profiles(id),
-  stripe_customer_id text,
-  stripe_subscription_id text,
-  plan_id text,
-  status text,
-  current_period_end timestamp,
+  cause_id uuid references causes(id),
+  amount integer not null,
+  donor_name text,
+  donor_email text,
+  message text,
+  stripe_payment_intent text,
+  stripe_session_id text,
+  status text default 'pending',
+  anonymous boolean default false,
+  fiscal_receipt boolean default true,
   created_at timestamp default now()
 );
 
--- Configuration IA par utilisateur
-create table if not exists ai_config (
+-- Cours
+create table if not exists courses (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references profiles(id),
-  gender text,
-  personality text,
-  hair text,
-  eyes text,
-  build text,
-  style text,
+  name text not null,
+  description text,
+  day_of_week text,
+  time_start text,
+  time_end text,
+  age_min integer,
+  age_max integer,
+  level text,
+  location text default 'Dojo JCP — Bras Panon',
+  max_participants integer,
+  active boolean default true,
+  created_at timestamp default now()
+);
+
+-- Événements
+create table if not exists events (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text,
+  event_date date,
+  event_time text,
+  location text,
+  type text default 'competition',
+  image_url text,
+  registration_required boolean default false,
+  created_at timestamp default now()
+);
+
+-- Inscriptions aux cours
+create table if not exists course_registrations (
+  id uuid primary key default gen_random_uuid(),
+  course_id uuid references courses(id),
+  first_name text not null,
+  last_name text not null,
+  email text not null,
+  phone text,
+  birth_date date,
+  address text,
+  emergency_contact text,
+  emergency_phone text,
+  medical_notes text,
+  status text default 'pending',
+  created_at timestamp default now()
+);
+
+-- Articles presse
+create table if not exists press_articles (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  publication text,
+  article_date date,
+  url text,
+  excerpt text,
+  image_url text,
+  featured boolean default false,
+  created_at timestamp default now()
+);
+
+-- Newsletter abonnés
+create table if not exists newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  first_name text,
+  last_name text,
+  active boolean default true,
+  subscribed_at timestamp default now(),
+  unsubscribed_at timestamp
+);
+
+-- Campagnes newsletter
+create table if not exists newsletter_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  subject text not null,
+  preview_text text,
+  content_html text,
+  content_json jsonb,
+  status text default 'draft',
+  sent_at timestamp,
+  recipient_count integer default 0,
+  open_count integer default 0,
+  created_at timestamp default now()
+);
+
+-- Réseaux sociaux
+create table if not exists social_links (
+  id uuid primary key default gen_random_uuid(),
+  platform text not null,
+  url text not null,
+  icon text,
+  label text,
+  active boolean default true,
+  sort_order integer default 0,
   updated_at timestamp default now()
 );
 
--- Conversations
-create table if not exists conversations (
+-- Visites pages (tracking anonyme)
+create table if not exists page_views (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references profiles(id),
-  ai_config_id uuid references ai_config(id),
-  started_at timestamp default now(),
-  last_message_at timestamp
-);
-
--- Messages
-create table if not exists messages (
-  id uuid primary key default gen_random_uuid(),
-  conversation_id uuid references conversations(id),
-  role text,
-  content text,
-  type text default 'text',
-  image_url text,
+  path text not null,
+  referrer text,
+  user_agent text,
+  country text,
+  city text,
+  session_id text,
   created_at timestamp default now()
 );
 
--- Notifications
-create table if not exists notifications (
+-- Admins
+create table if not exists admin_users (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references profiles(id),
-  title text,
-  body text,
-  read boolean default false,
+  email text unique not null,
+  name text,
+  role text default 'admin',
   created_at timestamp default now()
 );
 
--- Usage quotidien
-create table if not exists daily_usage (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references profiles(id),
-  date date default current_date,
-  seconds_used integer default 0,
-  unique(user_id, date)
-);
+-- ================================================
+-- Données initiales — Causes
+-- ================================================
+insert into causes (slug, name, short_desc, icon, goal_amount, collected_amount, color, sort_order) values
+  ('lutte-delinquance', 'Lutte contre la délinquance', 'Offrir aux jeunes en rupture une alternative structurante via le judo', '🚨', 350000, 0, '#dc2626', 1),
+  ('perseverance-scolaire', 'Persévérance scolaire', 'Créer le lien entre sport, école et famille pour que chaque enfant tienne bon', '📚', 280000, 0, '#2563eb', 2),
+  ('inclusion-autisme', 'Inclusion autisme & sport', 'Le tatami comme espace prévisible, un vecteur d''inclusion et d''autonomie', '🤝', 420000, 0, '#7c3aed', 3),
+  ('violences-femmes', 'Lutte contre les violences faites aux femmes', 'L''autodéfense est un droit. Reprendre le contrôle de son corps, c''est reprendre le contrôle de sa vie', '💜', 300000, 0, '#db2777', 4),
+  ('decouverte-ailleurs', 'Découverte de l''ailleurs', 'Le judo est une langue universelle. Partout où l''on pose un tatami, on se comprend', '✈️', 500000, 0, '#059669', 5)
+on conflict (slug) do nothing;
 
--- RLS policies
-alter table profiles enable row level security;
-alter table subscriptions enable row level security;
-alter table ai_config enable row level security;
-alter table conversations enable row level security;
-alter table messages enable row level security;
-alter table notifications enable row level security;
-alter table daily_usage enable row level security;
+-- Données initiales — Cours
+insert into courses (name, description, day_of_week, time_start, time_end, age_min, age_max, level) values
+  ('Baby Judo', 'Éveil corporel et motricité pour les tout-petits', 'Mercredi', '09:00', '10:00', 4, 6, 'Débutant'),
+  ('Mini Poussins', 'Initiation au judo dans le jeu et la découverte', 'Mercredi', '10:00', '11:00', 6, 8, 'Débutant'),
+  ('Poussins / Benjamins', 'Apprentissage des techniques de base', 'Mercredi', '11:00', '12:00', 8, 12, 'Débutant'),
+  ('Minimes / Cadets', 'Perfectionnement technique et compétition', 'Mardi', '18:00', '19:30', 12, 17, 'Intermédiaire'),
+  ('Juniors / Seniors', 'Entraînement avancé, compétition et kata', 'Mardi', '19:30', '21:00', 17, 99, 'Avancé'),
+  ('Juniors / Seniors', 'Entraînement avancé, compétition et kata', 'Jeudi', '19:30', '21:00', 17, 99, 'Avancé'),
+  ('Judo Loisir Adultes', 'Judo en loisir, sans contrainte de compétition', 'Vendredi', '18:30', '20:00', 18, 99, 'Tous niveaux'),
+  ('Cours Spécial TSA', 'Cours adapté pour enfants autistes', 'Samedi', '09:00', '10:00', 5, 16, 'Adapté'),
+  ('Autodéfense Femmes', 'Stage autodéfense réservé aux femmes', 'Samedi', '10:00', '11:30', 16, 99, 'Tous niveaux')
+on conflict do nothing;
 
-create policy "Users can manage their own profile" on profiles for all using (auth.uid() = id);
-create policy "Users can manage their own subscriptions" on subscriptions for all using (auth.uid() = user_id);
-create policy "Users can manage their own ai_config" on ai_config for all using (auth.uid() = user_id);
-create policy "Users can manage their own conversations" on conversations for all using (auth.uid() = user_id);
-create policy "Users can manage their own messages" on messages for all using (
-  conversation_id in (select id from conversations where user_id = auth.uid())
-);
-create policy "Users can manage their own notifications" on notifications for all using (auth.uid() = user_id);
-create policy "Users can manage their own daily_usage" on daily_usage for all using (auth.uid() = user_id);
+-- Données initiales — Articles presse
+insert into press_articles (title, publication, article_date, excerpt, featured) values
+  ('Le Judo Club Panonnais lance sa grande collecte solidaire', 'Le Quotidien de La Réunion', '2026-01-15', 'Le club judoka de Bras Panon lance une campagne de dons ambitieuse pour financer cinq causes sociales prioritaires à hauteur de 40 000 €.', true),
+  ('Sport et inclusion : le JCP ouvre ses tatamis aux enfants autistes', 'Clicanoo', '2025-11-20', 'Un créneau hebdomadaire spécialement aménagé pour accueillir des enfants présentant des troubles du spectre autistique.', true),
+  ('Bras Panon : le judo contre la délinquance juvénile', 'Journal de l''île de La Réunion', '2025-09-08', 'En partenariat avec la Protection Judiciaire de la Jeunesse, le JCP propose des cours gratuits aux jeunes en difficulté.', false),
+  ('Les judokas de Bras Panon s''envolent pour le Japon', 'Réunion La 1ère', '2025-06-30', 'Cinq jeunes pratiquants du Judo Club Panonnais ont participé à un voyage culturel et sportif au Japon, berceau du judo.', false),
+  ('La présidente du JCP récompensée pour son engagement social', 'Zinfos974', '2025-03-12', 'La présidente du Judo Club Panonnais a reçu le prix de l''engagement associatif décerné par la Mairie de Bras Panon.', false)
+on conflict do nothing;
+
+-- Données initiales — Réseaux sociaux
+insert into social_links (platform, url, icon, label, sort_order) values
+  ('facebook', 'https://www.facebook.com/judoclubpanonnais', 'facebook', 'Facebook', 1),
+  ('instagram', 'https://www.instagram.com/judoclubpanonnais', 'instagram', 'Instagram', 2),
+  ('youtube', 'https://www.youtube.com/@judoclubpanonnais', 'youtube', 'YouTube', 3)
+on conflict do nothing;
