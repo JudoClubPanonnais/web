@@ -48,10 +48,10 @@ export default function AdminDons() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">💰 Dons & projets</h1>
+          <h1 className="text-2xl font-black text-gray-900">Dons & projets</h1>
           <p className="text-gray-500 text-sm mt-1">Détail de tous les dons reçus</p>
         </div>
-        <button onClick={exportCSV} className="btn-navy text-sm">⬇️ Exporter CSV</button>
+        <button onClick={exportCSV} className="btn-navy text-sm">Exporter CSV</button>
       </div>
 
       {/* Stats par cause */}

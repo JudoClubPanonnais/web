@@ -45,7 +45,7 @@ export default function AdminReseaux() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-gray-900">📱 Réseaux sociaux</h1>
+        <h1 className="text-2xl font-black text-gray-900">Réseaux sociaux</h1>
         <p className="text-gray-500 text-sm mt-1">Gérez les liens des réseaux sociaux affichés sur le site</p>
       </div>
 
@@ -71,7 +71,7 @@ export default function AdminReseaux() {
           <button onClick={save} disabled={saving} className="btn-primary w-full mt-6 disabled:opacity-50">
             {saving ? 'Sauvegarde...' : '💾 Sauvegarder'}
           </button>
-          {saved && <p className="text-green-600 text-sm mt-2 text-center">✅ Modifications sauvegardées !</p>}
+          {saved && <p className="text-green-600 text-sm mt-2 text-center">Modifications sauvegardées !</p>}
         </div>
 
         {/* Aperçu */}

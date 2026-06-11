@@ -5,7 +5,7 @@ interface Subscriber { id: string; email: string; first_name: string; subscribed
 interface Campaign { id: string; subject: string; preview_text: string; status: string; sent_at: string; recipient_count: number; created_at: string }
 
 const TEMPLATES = [
-  { name: 'Actualité du club', subject: '🥋 Actualités du Judo Club Panonnais', content: `<h1 style="color:#1e3a5f;font-family:sans-serif">Actualités du Judo Club Panonnais</h1><p style="font-family:sans-serif;color:#666">Bonjour,</p><p style="font-family:sans-serif;color:#666">Voici les dernières nouvelles de votre club...</p>` },
+  { name: 'Actualité du club', subject: 'Actualités du Judo Club Panonnais', content: `<h1 style="color:#1e3a5f;font-family:sans-serif">Actualités du Judo Club Panonnais</h1><p style="font-family:sans-serif;color:#666">Bonjour,</p><p style="font-family:sans-serif;color:#666">Voici les dernières nouvelles de votre club...</p>` },
   { name: 'Résultats collecte', subject: '❤️ Résultats de notre collecte solidaire', content: `<h1 style="color:#1e3a5f;font-family:sans-serif">Résultats de la collecte</h1><p style="font-family:sans-serif;color:#666">Grâce à vous, nous avons collecté...</p>` },
   { name: 'Événement à venir', subject: '📅 Événement JCP — Ne manquez pas ça !', content: `<h1 style="color:#1e3a5f;font-family:sans-serif">Prochain événement</h1><p style="font-family:sans-serif;color:#666">Nous sommes heureux de vous annoncer...</p>` },
 ]
@@ -49,13 +49,13 @@ export default function AdminNewsletter() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-gray-900">📧 Newsletter</h1>
+        <h1 className="text-2xl font-black text-gray-900">Newsletter</h1>
         <p className="text-gray-500 text-sm mt-1">{subscribers.filter(s => s.active).length} abonné{subscribers.filter(s => s.active).length > 1 ? 's' : ''} actif{subscribers.filter(s => s.active).length > 1 ? 's' : ''}</p>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-200">
-        {[['subscribers', '👥 Abonnés'], ['campaigns', '📊 Campagnes'], ['compose', '✉️ Composer']].map(([k, l]) => (
+        {[['subscribers', 'Abonnés'], ['campaigns', 'Campagnes'], ['compose', 'Composer']].map(([k, l]) => (
           <button key={k} onClick={() => setTab(k as typeof tab)}
             className={`px-5 py-3 text-sm font-medium border-b-2 transition-colors ${tab === k ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             {l}
@@ -165,7 +165,7 @@ export default function AdminNewsletter() {
               </button>
             </div>
 
-            {sendStatus === 'success' && <p className="text-green-600 text-sm">✅ Newsletter envoyée avec succès !</p>}
+            {sendStatus === 'success' && <p className="text-green-600 text-sm">Newsletter envoyée avec succès !</p>}
             {sendStatus === 'error' && <p className="text-red-500 text-sm">Erreur lors de l'envoi.</p>}
           </div>
         </div>

@@ -5,12 +5,12 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 
 const NAV = [
-  { href: '/admin', label: 'Tableau de bord', icon: '📊' },
-  { href: '/admin/dons', label: 'Dons & projets', icon: '💰' },
-  { href: '/admin/visiteurs', label: 'Statistiques visiteurs', icon: '👥' },
-  { href: '/admin/inscrits', label: 'Inscrits aux cours', icon: '🥋' },
-  { href: '/admin/newsletter', label: 'Newsletter', icon: '📧' },
-  { href: '/admin/reseaux', label: 'Réseaux sociaux', icon: '📱' },
+  { href: '/admin', label: 'Tableau de bord' },
+  { href: '/admin/dons', label: 'Dons & projets' },
+  { href: '/admin/visiteurs', label: 'Statistiques visiteurs' },
+  { href: '/admin/inscrits', label: 'Inscrits aux cours' },
+  { href: '/admin/newsletter', label: 'Newsletter' },
+  { href: '/admin/reseaux', label: 'Réseaux sociaux' },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ${sideOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:block`}>
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -35,7 +34,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Link key={n.href} href={n.href}
               className={`admin-nav-link ${path === n.href ? 'bg-orange-50 text-orange-600 font-semibold' : ''}`}
               onClick={() => setSideOpen(false)}>
-              <span className="text-lg">{n.icon}</span>
               <span>{n.label}</span>
             </Link>
           ))}
@@ -47,10 +45,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      {/* Overlay mobile */}
       {sideOpen && <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={() => setSideOpen(false)} />}
 
-      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between lg:hidden">
           <button onClick={() => setSideOpen(true)} className="p-2 text-gray-600">

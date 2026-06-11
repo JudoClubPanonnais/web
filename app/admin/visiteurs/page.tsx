@@ -24,14 +24,14 @@ export default function AdminVisiteurs() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-gray-900">👥 Statistiques visiteurs</h1>
+        <h1 className="text-2xl font-black text-gray-900">Statistiques visiteurs</h1>
         <p className="text-gray-500 text-sm mt-1">Analyse du trafic sur le site</p>
       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Visites totales', value: total, icon: '👁️', color: 'bg-blue-50 text-blue-600' },
+          { label: 'Visites totales', value: total, color: 'bg-blue-50 text-blue-600' },
           { label: 'Pages vues aujourd\'hui', value: dayStats[dayStats.length-1]?.count || 0, icon: '📅', color: 'bg-orange-50 text-orange-600' },
           { label: 'Pages vues cette semaine', value: dayStats.slice(-7).reduce((s,d) => s+d.count, 0), icon: '📈', color: 'bg-green-50 text-green-600' },
           { label: 'Pages indexées', value: pageStats.length, icon: '📄', color: 'bg-purple-50 text-purple-600' },

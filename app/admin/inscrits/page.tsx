@@ -41,10 +41,10 @@ export default function AdminInscrits() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">🥋 Inscrits aux cours</h1>
+          <h1 className="text-2xl font-black text-gray-900">Inscrits aux cours</h1>
           <p className="text-gray-500 text-sm mt-1">{list.length} inscription{list.length > 1 ? 's' : ''} au total</p>
         </div>
-        <button onClick={exportCSV} className="btn-navy text-sm">⬇️ Exporter CSV</button>
+        <button onClick={exportCSV} className="btn-navy text-sm">Exporter CSV</button>
       </div>
 
       {/* Stats par cours */}

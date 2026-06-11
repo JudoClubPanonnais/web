@@ -21,11 +21,11 @@ export default function AdminDashboard() {
   }, [])
 
   const cards = [
-    { label: 'Total des dons', value: stats ? `${(stats.total_amount / 100).toLocaleString('fr-FR')} €` : '—', icon: '💰', color: 'bg-orange-50 text-orange-600', link: '/admin/dons' },
-    { label: 'Nombre de dons', value: stats?.total_donations ?? '—', icon: '🎁', color: 'bg-blue-50 text-blue-600', link: '/admin/dons' },
-    { label: 'Inscrits aux cours', value: stats?.total_registrations ?? '—', icon: '🥋', color: 'bg-green-50 text-green-600', link: '/admin/inscrits' },
-    { label: 'Abonnés newsletter', value: stats?.total_subscribers ?? '—', icon: '📧', color: 'bg-purple-50 text-purple-600', link: '/admin/newsletter' },
-    { label: 'Visites totales', value: stats?.total_views ?? '—', icon: '👁️', color: 'bg-teal-50 text-teal-600', link: '/admin/visiteurs' },
+    { label: 'Total des dons', value: stats ? `${(stats.total_amount / 100).toLocaleString('fr-FR')} €` : '—', color: 'border-l-4 border-orange-500', link: '/admin/dons' },
+    { label: 'Nombre de dons', value: stats?.total_donations ?? '—', color: 'border-l-4 border-blue-500', link: '/admin/dons' },
+    { label: 'Inscrits aux cours', value: stats?.total_registrations ?? '—', color: 'border-l-4 border-green-500', link: '/admin/inscrits' },
+    { label: 'Abonnés newsletter', value: stats?.total_subscribers ?? '—', color: 'border-l-4 border-purple-500', link: '/admin/newsletter' },
+    { label: 'Visites totales', value: stats?.total_views ?? '—', color: 'border-l-4 border-teal-500', link: '/admin/visiteurs' },
   ]
 
   return (
@@ -35,11 +35,9 @@ export default function AdminDashboard() {
         <p className="text-gray-500 text-sm mt-1">Vue d'ensemble du Judo Club Panonnais</p>
       </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {cards.map(c => (
-          <Link key={c.label} href={c.link} className="bg-white rounded-2xl p-5 border border-gray-100 hover:shadow-md transition-all group">
-            <div className={`w-10 h-10 ${c.color} rounded-xl flex items-center justify-center text-xl mb-3`}>{c.icon}</div>
+          <Link key={c.label} href={c.link} className={`bg-white rounded-2xl p-5 border border-gray-100 ${c.color} hover:shadow-md transition-all group`}>
             <div className="text-2xl font-black text-gray-900 group-hover:text-orange-500 transition-colors">
               {loading ? <span className="animate-pulse bg-gray-200 rounded w-16 h-7 block" /> : c.value}
             </div>
@@ -49,9 +47,8 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Avancement par cause */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="font-bold text-gray-900 mb-5">🏆 Avancement des causes</h2>
+          <h2 className="font-bold text-gray-900 mb-5">Avancement des causes</h2>
           {loading ? <div className="space-y-4">{[1,2,3,4,5].map(i => <div key={i} className="animate-pulse h-14 bg-gray-100 rounded-xl" />)}</div> : (
             <div className="space-y-4">
               {(stats?.causes || [
@@ -66,7 +63,7 @@ export default function AdminDashboard() {
                   <div key={i}>
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-sm font-medium text-gray-700">{c.icon} {c.name}</span>
-                      <span className="text-sm text-gray-500">{(c.collected/100).toLocaleString('fr-FR')} € / {(c.goal/100).toLocaleString('fr-FR')} €</span>
+                      <span className="text-sm text-gray-500">{(c.collected/100).toLocaleString('fr-FR')} €</span>
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div className="h-full bg-orange-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
@@ -79,10 +76,9 @@ export default function AdminDashboard() {
           )}
         </div>
 
-        {/* Dons récents */}
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-bold text-gray-900">💰 Dons récents</h2>
+            <h2 className="font-bold text-gray-900">Dons récents</h2>
             <Link href="/admin/dons" className="text-sm text-orange-500 hover:underline">Voir tout →</Link>
           </div>
           {loading ? <div className="space-y-3">{[1,2,3,4].map(i => <div key={i} className="animate-pulse h-12 bg-gray-100 rounded-xl" />)}</div> : (
@@ -106,18 +102,17 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Actions rapides */}
       <div className="mt-6 bg-white rounded-2xl border border-gray-100 p-6">
-        <h2 className="font-bold text-gray-900 mb-4">⚡ Actions rapides</h2>
+        <h2 className="font-bold text-gray-900 mb-4">Actions rapides</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { href: '/admin/newsletter', label: 'Créer une newsletter', icon: '✉️' },
-            { href: '/admin/inscrits', label: 'Voir les inscrits', icon: '🥋' },
-            { href: '/admin/dons', label: 'Exporter les dons', icon: '📊' },
-            { href: '/admin/reseaux', label: 'Gérer les réseaux', icon: '📱' },
+            { href: '/admin/newsletter', label: 'Créer une newsletter' },
+            { href: '/admin/inscrits', label: 'Voir les inscrits' },
+            { href: '/admin/dons', label: 'Exporter les dons' },
+            { href: '/admin/reseaux', label: 'Gérer les réseaux' },
           ].map(a => (
             <Link key={a.href} href={a.href} className="flex items-center gap-2 p-3 border border-gray-200 rounded-xl hover:border-orange-300 hover:bg-orange-50 transition-all text-sm font-medium text-gray-700">
-              <span>{a.icon}</span> {a.label}
+              {a.label}
             </Link>
           ))}
         </div>
