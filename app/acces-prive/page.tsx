@@ -19,7 +19,7 @@ export default function AccesPrivePage() {
     })
     if (res.ok) {
       setOk(true)
-      setTimeout(() => router.push('/'), 800)
+      setTimeout(() => window.location.href = '/', 800)
     } else {
       setErr(true)
       setTimeout(() => setErr(false), 2000)

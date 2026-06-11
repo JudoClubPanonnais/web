@@ -10,8 +10,10 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ ok: true })
     res.cookies.set('jcp_preview_auth', `${LOGIN}:${PASS}`, {
       httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7, // 7 jours
+      maxAge: 60 * 60 * 24 * 7,
       path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     })
     return res
   }
