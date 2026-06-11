@@ -30,6 +30,7 @@ export default function HomePage() {
   const [email, setEmail] = useState('')
   const [msg, setMsg] = useState('')
   const [anon, setAnon] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('card')
   const [status, setStatus] = useState<'idle'|'loading'|'error'>('idle')
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function HomePage() {
       const res = await fetch('/api/donations/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: eff * 100, cause_slug: selCause || null, donor_name: anon ? 'Anonyme' : name, donor_email: email, message: msg, anonymous: anon }),
+        body: JSON.stringify({ amount: eff * 100, cause_slug: selCause || null, donor_name: anon ? 'Anonyme' : name, donor_email: email, message: msg, anonymous: anon, payment_method: paymentMethod }),
       })
       const d = await res.json()
       if (d.url) window.location.href = d.url

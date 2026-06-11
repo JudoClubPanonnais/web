@@ -3,16 +3,36 @@ import { useEffect, useState } from 'react'
 
 interface Inscrit { id: string; first_name: string; last_name: string; email: string; phone: string; birth_date: string; course: string; status: string; created_at: string; medical_notes: string }
 
+const COURSES = [
+  'Baby Judo',
+  'Mini Poussins',
+  'Poussins / Benjamins',
+  'Minimes / Cadets',
+  'Juniors / Seniors (Mardi)',
+  'Juniors / Seniors (Jeudi)',
+  'Judo Loisir Adultes',
+  'Cours Spécial TSA',
+  'Autodéfense Femmes',
+]
+
+const EMPTY_FORM = { first_name: '', last_name: '', email: '', phone: '', birth_date: '', course: COURSES[0], medical_notes: '' }
+
 export default function AdminInscrits() {
   const [list, setList] = useState<Inscrit[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('all')
   const [selected, setSelected] = useState<Inscrit | null>(null)
+  const [showAdd, setShowAdd] = useState(false)
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [submitting, setSubmitting] = useState(false)
+  const [addError, setAddError] = useState('')
 
-  useEffect(() => {
+  function loadList() {
     fetch('/api/admin/registrations').then(r => r.json()).then(d => { setList(d.registrations || []); setLoading(false) }).catch(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { loadList() }, [])
 
   const filtered = list.filter(i => {
     const matchFilter = filter === 'all' || i.status === filter
@@ -23,6 +43,30 @@ export default function AdminInscrits() {
   async function updateStatus(id: string, status: string) {
     await fetch('/api/admin/registrations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
     setList(l => l.map(i => i.id === id ? { ...i, status } : i))
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    if (!form.first_name || !form.last_name || !form.email) return
+    setSubmitting(true)
+    setAddError('')
+    try {
+      const res = await fetch('/api/admin/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) {
+        setShowAdd(false)
+        setForm(EMPTY_FORM)
+        setLoading(true)
+        loadList()
+      } else {
+        const d = await res.json()
+        setAddError(d.error || 'Erreur lors de l\'ajout')
+      }
+    } catch { setAddError('Erreur réseau') }
+    setSubmitting(false)
   }
 
   function exportCSV() {
@@ -44,7 +88,10 @@ export default function AdminInscrits() {
           <h1 className="text-2xl font-black text-gray-900">Inscrits aux cours</h1>
           <p className="text-gray-500 text-sm mt-1">{list.length} inscription{list.length > 1 ? 's' : ''} au total</p>
         </div>
-        <button onClick={exportCSV} className="btn-navy text-sm">Exporter CSV</button>
+        <div className="flex gap-2">
+          <button onClick={() => { setShowAdd(true); setAddError('') }} className="btn-primary text-sm">Ajouter un inscrit</button>
+          <button onClick={exportCSV} className="btn-navy text-sm">Exporter CSV</button>
+        </div>
       </div>
 
       {/* Stats par cours */}
@@ -134,6 +181,57 @@ export default function AdminInscrits() {
               <button onClick={() => { updateStatus(selected.id, 'confirmed'); setSelected(null) }} className="flex-1 py-2 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 transition-colors">✓ Confirmer</button>
               <button onClick={() => { updateStatus(selected.id, 'cancelled'); setSelected(null) }} className="flex-1 py-2 bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 transition-colors">✗ Annuler</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal ajout inscrit */}
+      {showAdd && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowAdd(false)}>
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between mb-6">
+              <h2 className="font-bold text-lg text-[#1e3a5f]">Ajouter un inscrit</h2>
+              <button onClick={() => setShowAdd(false)} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+            </div>
+            <form onSubmit={handleAdd} className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prénom *</label>
+                  <input value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))} required className="input-field" placeholder="Prénom" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom *</label>
+                  <input value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))} required className="input-field" placeholder="Nom" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} required className="input-field" placeholder="email@exemple.fr" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="input-field" placeholder="0692 00 00 00" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date de naissance</label>
+                <input type="date" value={form.birth_date} onChange={e => setForm(f => ({ ...f, birth_date: e.target.value }))} className="input-field" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cours *</label>
+                <select value={form.course} onChange={e => setForm(f => ({ ...f, course: e.target.value }))} className="input-field">
+                  {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes médicales</label>
+                <textarea value={form.medical_notes} onChange={e => setForm(f => ({ ...f, medical_notes: e.target.value }))} rows={3} className="input-field resize-none" placeholder="Allergies, contre-indications..." />
+              </div>
+              {addError && <p className="text-red-500 text-sm">{addError}</p>}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowAdd(false)} className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Annuler</button>
+                <button type="submit" disabled={submitting} className="flex-1 btn-primary disabled:opacity-50">{submitting ? 'Ajout...' : 'Ajouter'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

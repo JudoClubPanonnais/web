@@ -34,3 +34,31 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Erreur' }, { status: 500 })
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const { first_name, last_name, email, phone, birth_date, course, medical_notes } = await req.json()
+    if (!first_name || !last_name || !email) {
+      return NextResponse.json({ error: 'Prénom, nom et email requis' }, { status: 400 })
+    }
+
+    // Chercher le cours par nom
+    const { data: courseRow } = await getSupabase().from('courses').select('id').ilike('name', `%${course}%`).limit(1).single()
+
+    const { error } = await getSupabase().from('course_registrations').insert({
+      first_name,
+      last_name,
+      email,
+      phone: phone || null,
+      birth_date: birth_date || null,
+      course_id: courseRow?.id || null,
+      medical_notes: medical_notes || null,
+      status: 'pending',
+    })
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}

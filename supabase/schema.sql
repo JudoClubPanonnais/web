@@ -27,6 +27,7 @@ create table if not exists donations (
   message text,
   stripe_payment_intent text,
   stripe_session_id text,
+  payment_method text default 'card',
   status text default 'pending',
   anonymous boolean default false,
   fiscal_receipt boolean default true,

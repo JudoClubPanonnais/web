@@ -21,6 +21,16 @@ export default function AdminNewsletter() {
   const [sending, setSending] = useState(false)
   const [sendStatus, setSendStatus] = useState<'idle'|'success'|'error'>('idle')
 
+  // Ajout abonné
+  const [showAddSub, setShowAddSub] = useState(false)
+  const [subEmail, setSubEmail] = useState('')
+  const [subFirstName, setSubFirstName] = useState('')
+  const [addingSubStatus, setAddingSubStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
+
+  function loadSubscribers() {
+    fetch('/api/admin/newsletter/subscribers').then(r => r.json()).then(s => setSubscribers(s.subscribers || []))
+  }
+
   useEffect(() => {
     Promise.all([
       fetch('/api/admin/newsletter/subscribers').then(r => r.json()),
@@ -46,6 +56,29 @@ export default function AdminNewsletter() {
     setSending(false)
   }
 
+  async function handleAddSubscriber(e: React.FormEvent) {
+    e.preventDefault()
+    if (!subEmail) return
+    setAddingSubStatus('loading')
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: subEmail, first_name: subFirstName || undefined }),
+      })
+      if (res.ok) {
+        setAddingSubStatus('success')
+        setSubEmail('')
+        setSubFirstName('')
+        setShowAddSub(false)
+        loadSubscribers()
+      } else {
+        setAddingSubStatus('error')
+      }
+    } catch { setAddingSubStatus('error') }
+    setTimeout(() => setAddingSubStatus('idle'), 3000)
+  }
+
   return (
     <div>
       <div className="mb-8">
@@ -66,6 +99,34 @@ export default function AdminNewsletter() {
       {/* Abonnés */}
       {tab === 'subscribers' && (
         <div>
+          <div className="flex justify-end mb-4">
+            <button onClick={() => { setShowAddSub(v => !v); setAddingSubStatus('idle') }} className="btn-primary text-sm">
+              {showAddSub ? 'Annuler' : 'Ajouter un abonné'}
+            </button>
+          </div>
+
+          {/* Formulaire inline ajout abonné */}
+          {showAddSub && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
+              <h3 className="font-semibold text-gray-800 mb-4">Nouvel abonné</h3>
+              <form onSubmit={handleAddSubscriber} className="flex flex-col sm:flex-row gap-3 items-end">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input type="email" required value={subEmail} onChange={e => setSubEmail(e.target.value)} placeholder="email@exemple.fr" className="input-field" />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prénom (optionnel)</label>
+                  <input type="text" value={subFirstName} onChange={e => setSubFirstName(e.target.value)} placeholder="Prénom" className="input-field" />
+                </div>
+                <button type="submit" disabled={addingSubStatus === 'loading'} className="btn-navy whitespace-nowrap disabled:opacity-50">
+                  {addingSubStatus === 'loading' ? 'Ajout...' : 'Ajouter'}
+                </button>
+              </form>
+              {addingSubStatus === 'success' && <p className="text-green-600 text-sm mt-2">Abonné ajouté avec succès.</p>}
+              {addingSubStatus === 'error' && <p className="text-red-500 text-sm mt-2">Erreur lors de l'ajout.</p>}
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
