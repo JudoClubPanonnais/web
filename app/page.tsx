@@ -87,7 +87,7 @@ export default function HomePage() {
                 Soutenez notre projet pédagogique 2026 et transformez des vies.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link href="#don" className="btn-primary text-base py-3.5 px-7">❤️ Faire un don</Link>
+                <Link href="#don" className="btn-primary text-base py-3.5 px-7">Faire un don</Link>
                 <Link href="#causes" className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-white/30 text-white hover:bg-white/10 font-semibold rounded-xl transition-all text-base">Nos 5 causes →</Link>
               </div>
               <div className="flex gap-8 mt-10">
@@ -110,8 +110,8 @@ export default function HomePage() {
       <section className="bg-orange-500 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-white text-center">
-            {[['🥋','Affilié FFJDA','Fédération Française de Judo'],['📍','Bras Panon','Est de La Réunion'],['🏅','Loi 1901','Association officielle'],['💸','100%','Reversé aux projets']].map(([i,t,s]) => (
-              <div key={t}><div className="text-xl mb-0.5">{i}</div><div className="font-bold">{t}</div><div className="text-orange-100 text-xs">{s}</div></div>
+            {[['Affilié FFJDA','Fédération Française de Judo'],['Bras Panon','Est de La Réunion'],['Loi 1901','Association officielle'],['100%','Reversé aux projets']].map(([t,s]) => (
+              <div key={t}><div className="font-bold">{t}</div><div className="text-orange-100 text-xs">{s}</div></div>
             ))}
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function HomePage() {
       <section id="causes" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">🏆 Classement en direct des causes</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Classement en direct des causes</h2>
             <p className="text-gray-500 max-w-xl mx-auto">Chaque don est fléché vers la cause choisie. Classement mis à jour en temps réel.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -137,20 +137,17 @@ export default function HomePage() {
                   <p className="text-gray-500 text-sm mb-4 line-clamp-2">{c.desc}</p>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="font-semibold text-gray-700">{c.raised.toLocaleString('fr-FR')} €</span>
-                      <span className="text-gray-400">/ {c.goal.toLocaleString('fr-FR')} €</span>
+                      <span className="font-semibold text-gray-700">{c.raised.toLocaleString('fr-FR')} € collectés</span>
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div className={`h-full bg-gradient-to-r ${c.color} rounded-full`} style={{ width: `${pct}%` }} />
                     </div>
-                    <div className="text-xs text-gray-400">{pct}% atteint</div>
                   </div>
                 </Link>
               )
             })}
           </div>
           <div className="text-center">
-            <p className="text-gray-500 text-sm mb-4">Objectif global : <strong className="text-[#1e3a5f]">40 000 €</strong></p>
             <Link href="#don" className="btn-primary">Soutenir une cause →</Link>
           </div>
         </div>
@@ -160,7 +157,7 @@ export default function HomePage() {
       <section id="don" className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">❤️ Faire un don</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Faire un don</h2>
             <p className="text-gray-500">100% reversé au projet. Reçu fiscal automatique.</p>
           </div>
           <div className="card p-8">
@@ -169,7 +166,7 @@ export default function HomePage() {
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-3">Choisissez une cause (optionnel)</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[{slug:'',name:'🌟 Don général (toutes causes)',icon:''},...causes].map(c => (
+                  {[{slug:'',name:'Don général (toutes causes)',icon:''},...causes].map(c => (
                     <button key={c.slug} type="button" onClick={() => setSelCause(c.slug)}
                       className={`p-3 rounded-xl border-2 text-sm font-medium text-left transition-all ${selCause === c.slug ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                       {c.slug ? `${c.icon} ${c.name}` : c.name}
@@ -194,8 +191,8 @@ export default function HomePage() {
                     placeholder="Autre montant" min="1" className="input-field pr-10" />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">€</span>
                 </div>
-                {eff >= 10 && impactKey && <p className="text-sm text-green-600 mt-2 font-medium">✅ {IMPACTS[impactKey]}</p>}
-                {eff >= 10 && <p className="text-xs text-blue-600 mt-1">💡 Avantage fiscal : {Math.round(eff*0.66)} € remboursés (66% pour les particuliers)</p>}
+                {eff >= 10 && impactKey && <p className="text-sm text-green-600 mt-2 font-medium">{IMPACTS[impactKey]}</p>}
+                {eff >= 10 && <p className="text-xs text-blue-600 mt-1">Avantage fiscal : {Math.round(eff*0.66)} € remboursés (66% pour les particuliers)</p>}
               </div>
 
               {/* Identité */}
@@ -233,9 +230,8 @@ export default function HomePage() {
               <h2 className="text-2xl md:text-3xl font-bold mb-4">Défiscalisez votre don</h2>
               <p className="text-gray-300 mb-6">Association d'intérêt général — vos dons ouvrent droit à des avantages fiscaux importants.</p>
               <div className="space-y-4">
-                {[['👤','Particuliers','66% du don déductible de l\'impôt sur le revenu'],['🏢','Entreprises (mécénat)','60% du don déductible de l\'IS (art. 238 bis CGI)']].map(([i,t,d]) => (
+                {[['Particuliers','66% du don déductible de l\'impôt sur le revenu'],['Entreprises (mécénat)','60% du don déductible de l\'IS (art. 238 bis CGI)']].map(([t,d]) => (
                   <div key={t} className="flex items-start gap-3 bg-white/10 rounded-xl p-4">
-                    <span className="text-2xl">{i}</span>
                     <div><div className="font-semibold">{t}</div><div className="text-gray-300 text-sm">{d}</div></div>
                   </div>
                 ))}
@@ -243,9 +239,8 @@ export default function HomePage() {
             </div>
             <div className="text-center">
               <div className="bg-white/10 rounded-2xl p-8">
-                <div className="text-5xl font-black text-orange-400 mb-2">40 000 €</div>
-                <div className="text-gray-300 mb-4">Objectif de collecte 2026</div>
-                <div className="text-sm text-gray-400">Reçu fiscal automatique par email après chaque don.</div>
+                <div className="text-gray-300 mb-2 text-sm uppercase tracking-wide">Reçu fiscal automatique</div>
+                <div className="text-gray-300 text-sm">Un reçu vous est envoyé par email après chaque don pour votre déclaration d'impôts.</div>
               </div>
             </div>
           </div>
@@ -269,9 +264,8 @@ export default function HomePage() {
               <Link href="/inscription" className="btn-navy">Rejoindre le club →</Link>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {[['🤝','Respect','De l\'autre, de soi, des règles'],['💪','Persévérance','Tomber, se relever, recommencer'],['📚','Discipline','La rigueur du dojo dans la vie'],['👥','Entraide','On grandit avec l\'autre']].map(([i,t,d]) => (
+              {[['Respect','De l\'autre, de soi, des règles'],['Persévérance','Tomber, se relever, recommencer'],['Discipline','La rigueur du dojo dans la vie'],['Entraide','On grandit avec l\'autre']].map(([t,d]) => (
                 <div key={t} className="card p-5 text-center">
-                  <div className="text-3xl mb-2">{i}</div>
                   <div className="font-bold text-[#1e3a5f] mb-1">{t}</div>
                   <div className="text-gray-500 text-sm">{d}</div>
                 </div>
@@ -285,7 +279,7 @@ export default function HomePage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">🎬 Le club en action</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Le club en action</h2>
             <p className="text-gray-500">Revivez l'ambiance de nos entraînements sur les tatamis de Bras Panon</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

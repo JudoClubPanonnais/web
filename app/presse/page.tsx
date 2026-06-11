@@ -24,7 +24,7 @@ export default function PressePage() {
     <>
       <section className="bg-gradient-to-br from-[#1e3a5f] to-[#0f1f33] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-4xl font-black mb-4">📰 Espace presse</h1>
+          <h1 className="text-3xl md:text-4xl font-black mb-4">Espace presse</h1>
           <p className="text-gray-300 max-w-2xl">Retrouvez toutes les publications, photos et vidéos consacrées au Judo Club Panonnais.</p>
         </div>
       </section>
@@ -33,7 +33,7 @@ export default function PressePage() {
 
         {/* GALERIE PHOTOS & VIDÉOS */}
         <section>
-          <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">🎬 Photos & vidéos du club</h2>
+          <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">Photos & vidéos du club</h2>
           <p className="text-gray-500 text-sm mb-6">Cliquez sur une image pour voir la vidéo complète</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PHOTOS.map((p, i) => (
@@ -81,7 +81,7 @@ export default function PressePage() {
 
         {/* Articles à la une */}
         <section>
-          <h2 className="text-2xl font-black text-[#1e3a5f] mb-6">📌 À la une</h2>
+          <h2 className="text-2xl font-black text-[#1e3a5f] mb-6">À la une</h2>
           <div className="grid md:grid-cols-2 gap-6">
             {featured.map((a, i) => (
               <article key={i} className="card p-6 border-l-4 border-orange-500">
@@ -99,7 +99,7 @@ export default function PressePage() {
 
         {/* Autres articles */}
         <section>
-          <h2 className="text-2xl font-black text-[#1e3a5f] mb-6">📋 Tous les articles</h2>
+          <h2 className="text-2xl font-black text-[#1e3a5f] mb-6">Tous les articles</h2>
           <div className="space-y-4">
             {others.map((a, i) => (
               <article key={i} className="card p-6 flex flex-col md:flex-row gap-4">
@@ -123,7 +123,7 @@ export default function PressePage() {
         <section className="bg-[#1e3a5f] text-white rounded-2xl p-8">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <div>
-              <h2 className="text-2xl font-bold mb-4">📧 Contact presse</h2>
+              <h2 className="text-2xl font-bold mb-4">Contact presse</h2>
               <p className="text-gray-300 mb-4">Vous êtes journaliste, blogueur ou influenceur et vous souhaitez parler du Judo Club Panonnais ? Nous sommes disponibles pour des interviews, visites du dojo et reportages.</p>
               <div className="space-y-2 text-sm">
                 <p>📧 <a href="mailto:contact@judoclubpanonnais.fr" className="text-orange-400 hover:underline">contact@judoclubpanonnais.fr</a></p>

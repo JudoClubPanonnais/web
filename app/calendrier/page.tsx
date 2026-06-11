@@ -42,7 +42,7 @@ export default function CalendrierPage() {
     <>
       <section className="bg-gradient-to-br from-[#1e3a5f] to-[#0f1f33] text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-4xl font-black mb-4">📅 Calendrier & cours</h1>
+          <h1 className="text-3xl md:text-4xl font-black mb-4">Calendrier & cours</h1>
           <p className="text-gray-300 max-w-2xl">Retrouvez tous nos créneaux de cours et événements à venir. Inscriptions en ligne disponibles.</p>
         </div>
       </section>
@@ -50,7 +50,7 @@ export default function CalendrierPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* HORAIRES COURS */}
         <section className="mb-16">
-          <h2 className="text-2xl md:text-3xl font-black text-[#1e3a5f] mb-8">🥋 Horaires des cours</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-[#1e3a5f] mb-8">Horaires des cours</h2>
           <div className="grid gap-4">
             {DAYS.filter(d => groupedByDay[d].length > 0).map(day => (
               <div key={day}>
@@ -65,10 +65,10 @@ export default function CalendrierPage() {
                         <span className="font-bold text-gray-800">{c.name}</span>
                       </div>
                       <div className="space-y-1 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">⏰ <span>{c.time}</span></div>
-                        <div className="flex items-center gap-2">👥 <span>{c.age}</span></div>
-                        <div className="flex items-center gap-2">📊 <span>{c.level}</span></div>
-                        <div className="flex items-center gap-2">📍 <span>Dojo JCP — Bras Panon</span></div>
+                        <div>{c.time}</div>
+                        <div>{c.age}</div>
+                        <div>{c.level}</div>
+                        <div>Dojo JCP — Bras Panon</div>
                       </div>
                       <Link href={`/inscription?cours=${encodeURIComponent(c.name)}`} className="mt-3 block text-center py-2 px-4 bg-[#1e3a5f] text-white rounded-lg text-sm font-medium hover:bg-[#0f1f33] transition-colors">
                         S'inscrire →
@@ -83,7 +83,7 @@ export default function CalendrierPage() {
 
         {/* ÉVÉNEMENTS */}
         <section>
-          <h2 className="text-2xl md:text-3xl font-black text-[#1e3a5f] mb-8">🗓️ Événements à venir</h2>
+          <h2 className="text-2xl md:text-3xl font-black text-[#1e3a5f] mb-8">Événements à venir</h2>
           <div className="space-y-4">
             {EVENTS.map((ev, i) => {
               const d = new Date(ev.date)

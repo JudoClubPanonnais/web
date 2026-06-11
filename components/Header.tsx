@@ -37,7 +37,7 @@ export default function Header() {
 
           <div className="flex items-center gap-3">
             <Link href="/#don" className="btn-primary text-sm py-2 px-4 hidden sm:inline-flex">
-              ❤️ Faire un don
+              Faire un don
             </Link>
             <button onClick={() => setOpen(!open)} className="md:hidden p-2 text-gray-700">
               {open ? (
@@ -64,7 +64,7 @@ export default function Header() {
           ))}
           <Link href="/#don" onClick={() => setOpen(false)}
             className="block px-4 py-3 text-sm font-semibold text-white bg-orange-500 rounded-xl text-center mt-2">
-            ❤️ Faire un don
+            Faire un don
           </Link>
         </div>
       )}
