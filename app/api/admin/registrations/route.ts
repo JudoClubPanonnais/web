@@ -53,13 +53,14 @@ export async function DELETE(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { first_name, last_name, email, phone, birth_date, course, medical_notes, course_type, price, payment_installments, payment_method } = await req.json()
+    const body = await req.json()
+    const { first_name, last_name, email, phone, birth_date, course, medical_notes, course_type, price, payment_installments, payment_method } = body
     if (!first_name || !last_name || !email) {
       return NextResponse.json({ error: 'Prénom, nom et email requis' }, { status: 400 })
     }
 
-    // Chercher le cours par nom
-    const { data: courseRow } = await getSupabase().from('courses').select('id').ilike('name', `%${course}%`).limit(1).single()
+    // Chercher le cours par nom (maybeSingle ne lève pas d'erreur si absent)
+    const { data: courseRow } = await getSupabase().from('courses').select('id').ilike('name', `%${course}%`).limit(1).maybeSingle()
 
     const { error } = await getSupabase().from('course_registrations').insert({
       first_name,
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  } catch (e) {
+    return NextResponse.json({ error: 'Erreur serveur', detail: String(e) }, { status: 500 })
   }
 }
