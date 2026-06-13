@@ -242,9 +242,9 @@ export default function InscriptionPage() {
             <div className="card p-6">
               <h3 className="font-bold text-[#1e3a5f] mb-4">Nous trouver</h3>
               <p className="text-gray-600 text-sm">
-                <strong>Dojo Lucine Ignas</strong><br />
-                Rue Lucine Ignas, 97412 Bras-Panon<br />
-                (à côté de la mairie)<br /><br />
+                <strong>Dojo Lucie Ignace</strong><br />
+                Rue Lucie Ignace, 97412 Bras-Panon<br />
+                (en face de la piscine (complexe sportif))<br /><br />
                 <strong>Dojo Champ de Foire</strong><br />
                 Champ de Foire, 97412 Bras-Panon<br />
                 (face à la médiathèque)
