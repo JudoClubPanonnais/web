@@ -376,60 +376,52 @@ export default function AdminInscrits() {
                   {' · '}Versements : <span className="font-medium">{selected.payment_installments}x</span>
                   {selected.payment_method && <>{' · '}<span className="font-medium">{selected.payment_method === 'transfer' ? 'Virement' : selected.payment_method === 'cash' ? 'Espèces/Chèque' : 'Carte'}</span></>}
                 </div>
-                {selected.price > 0 ? (
-                  <div className="grid grid-cols-3 gap-3 text-sm">
-                    <div className="bg-gray-50 rounded-xl p-3 text-center">
-                      <div className="text-xs text-gray-500 mb-1">Total</div>
-                      <div className="font-bold text-gray-900">{fmtEur(selected.price)}</div>
-                    </div>
-                    <div className="bg-blue-50 rounded-xl p-3 text-center">
-                      <div className="text-xs text-gray-500 mb-1">Payé</div>
-                      <div className="font-bold text-blue-700">{fmtEur(selected.amount_paid)}</div>
-                    </div>
-                    <div className="bg-red-50 rounded-xl p-3 text-center">
-                      <div className="text-xs text-gray-500 mb-1">Reste</div>
-                      <div className="font-bold text-red-600">{fmtEur(selected.price - selected.amount_paid)}</div>
-                    </div>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="bg-gray-50 rounded-xl p-3 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Total dû</div>
+                    <div className="font-bold text-gray-900">{selected.price > 0 ? fmtEur(selected.price) : '—'}</div>
                   </div>
-                ) : (
-                  <p className="text-sm text-gray-400 italic">Cours gratuit ou essai — aucun paiement requis.</p>
-                )}
+                  <div className="bg-blue-50 rounded-xl p-3 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Déjà payé</div>
+                    <div className="font-bold text-blue-700">{fmtEur(selected.amount_paid)}</div>
+                  </div>
+                  <div className="bg-red-50 rounded-xl p-3 text-center">
+                    <div className="text-xs text-gray-500 mb-1">Reste à payer</div>
+                    <div className="font-bold text-red-600">{selected.price > 0 ? fmtEur(Math.max(0, selected.price - selected.amount_paid)) : '—'}</div>
+                  </div>
+                </div>
 
                 {/* Historique paiements */}
-                {selected.price > 0 && (
-                  <div>
-                    <div className="text-xs font-semibold text-gray-600 mb-2">Historique des paiements</div>
-                    {payHistoryLoading ? (
-                      <p className="text-xs text-gray-400">Chargement...</p>
-                    ) : payHistory.length === 0 ? (
-                      <p className="text-xs text-gray-400 italic">Aucun paiement enregistré.</p>
-                    ) : (
-                      <ul className="space-y-1">
-                        {payHistory.map(p => (
-                          <li key={p.id} className="text-xs bg-gray-50 rounded-lg px-3 py-2 flex justify-between gap-2">
-                            <span>{p.payment_date} — {p.note || p.payment_method || '—'}</span>
-                            <span className="font-semibold text-green-700">{fmtEur(p.amount)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
+                <div>
+                  <div className="text-xs font-semibold text-gray-600 mb-2">Historique des paiements</div>
+                  {payHistoryLoading ? (
+                    <p className="text-xs text-gray-400">Chargement...</p>
+                  ) : payHistory.length === 0 ? (
+                    <p className="text-xs text-gray-400 italic">Aucun paiement enregistré.</p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {payHistory.map(p => (
+                        <li key={p.id} className="text-xs bg-gray-50 rounded-lg px-3 py-2 flex justify-between gap-2">
+                          <span>{p.payment_date} — {p.note || p.payment_method || '—'}</span>
+                          <span className="font-semibold text-green-700">{fmtEur(p.amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
 
                 {/* Boutons paiement */}
-                {selected.price > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    <button onClick={() => setShowPayForm(v => !v)} className="px-3 py-2 text-xs bg-orange-100 text-orange-700 rounded-xl hover:bg-orange-200 font-medium transition-colors">
-                      Enregistrer un paiement
-                    </button>
-                    <button onClick={() => { setShowEmailModal(true); setEmailResult('') }} className="px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-medium transition-colors">
-                      Envoyer demande de paiement
-                    </button>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => setShowPayForm(v => !v)} className="px-3 py-2 text-xs bg-orange-100 text-orange-700 rounded-xl hover:bg-orange-200 font-medium transition-colors">
+                    Enregistrer un paiement
+                  </button>
+                  <button onClick={() => { setShowEmailModal(true); setEmailResult('') }} className="px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-medium transition-colors">
+                    Envoyer demande de paiement
+                  </button>
+                </div>
 
                 {/* Mini form paiement */}
-                {showPayForm && selected.price > 0 && (
+                {showPayForm && (
                   <form onSubmit={handlePayFormSubmit} className="bg-gray-50 rounded-xl p-4 space-y-3 text-sm">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
