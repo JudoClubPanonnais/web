@@ -54,7 +54,7 @@ export async function DELETE(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { first_name, last_name, email, phone, birth_date, course, medical_notes, course_type, price, payment_installments, payment_method } = body
+    const { first_name, last_name, email, phone, birth_date, course, medical_notes, course_type, price, payment_installments, payment_method, belt_color } = body
     if (!first_name || !last_name || !email) {
       return NextResponse.json({ error: 'Prénom, nom et email requis' }, { status: 400 })
     }
@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
       price: typeof price === 'number' ? price : 0,
       payment_installments: typeof payment_installments === 'number' ? payment_installments : 1,
       payment_method: payment_method || null,
+      belt_color: belt_color || null,
     }
     console.log('[POST /api/admin/registrations] insert:', insertData)
     const { error } = await getSupabase().from('course_registrations').insert(insertData)

@@ -44,11 +44,14 @@ const COURSE_OPTIONS = [
   { label: 'Autodéfense Femmes — Gratuit', type: 'gratuit' as CourseType, price: 0 },
 ]
 
+const BELT_COLORS = ['blanc', 'jaune/blanc', 'jaune', 'jaune/orange', 'orange', 'orange/vert', 'vert', 'vert/bleu', 'bleu', 'marron', 'noir']
+
 const EMPTY_FORM = {
   first_name: '', last_name: '', email: '', phone: '', birth_date: '',
   course: COURSE_OPTIONS[0].label, medical_notes: '',
   course_type: 'essai' as CourseType, price: 0,
   payment_installments: 1, payment_method: 'cash' as PaymentMethod,
+  belt_color: '',
 }
 
 function rowClass(i: Inscrit) {
@@ -198,6 +201,7 @@ export default function AdminInscrits() {
           price: (opt?.price || form.price) * 100,
           payment_installments: form.payment_installments,
           payment_method: opt?.type === 'payant' ? form.payment_method : null,
+          belt_color: form.belt_color || null,
         }),
       })
       if (res.ok) {
@@ -296,7 +300,7 @@ export default function AdminInscrits() {
                       className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-orange-400"
                     >
                       <option value="">—</option>
-                      {['blanc', 'jaune/blanc', 'jaune', 'jaune/orange', 'orange', 'orange/vert', 'vert', 'vert/bleu', 'bleu', 'marron', 'noir'].map(b => (
+                      {BELT_COLORS.map(b => (
                         <option key={b} value={b}>{b}</option>
                       ))}
                     </select>
@@ -515,6 +519,13 @@ export default function AdminInscrits() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Cours *</label>
                 <select value={form.course} onChange={e => handleCourseChange(e.target.value)} className="input-field">
                   {COURSE_OPTIONS.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Couleur de ceinture</label>
+                <select value={form.belt_color} onChange={e => setForm(f => ({ ...f, belt_color: e.target.value }))} className="input-field">
+                  <option value="">— Non définie —</option>
+                  {BELT_COLORS.map(b => <option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
 
