@@ -243,8 +243,8 @@ export default function InscriptionPage() {
               <h3 className="font-bold text-[#1e3a5f] mb-4">Nous trouver</h3>
               <p className="text-gray-600 text-sm">
                 <strong>Dojo Lucie Ignace</strong><br />
-                Rue Lucie Ignace, 97412 Bras-Panon<br />
-                (en face de la piscine (complexe sportif))<br /><br />
+                1 Route Nationale 2, 97412 Bras-Panon<br />
+                (en face de la piscine)<br /><br />
                 <strong>Dojo Champ de Foire</strong><br />
                 Champ de Foire, 97412 Bras-Panon<br />
                 (face à la médiathèque)
