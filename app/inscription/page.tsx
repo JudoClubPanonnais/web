@@ -31,7 +31,7 @@ function InscriptionForm() {
     address: '', course: prefill, emergencyContact: '', emergencyPhone: '',
     medicalNotes: '', acceptCgu: false,
     payment_installments: 1,
-    payment_method: 'cash' as 'card' | 'transfer' | 'cash',
+    payment_method: 'card' as 'card' | 'transfer',
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
@@ -162,7 +162,6 @@ function InscriptionForm() {
                 {[
                   { value: 'card', label: 'Carte bancaire (en ligne)' },
                   { value: 'transfer', label: 'Virement bancaire' },
-                  { value: 'cash', label: 'Espèces / Chèque au club' },
                 ].map(opt => (
                   <label key={opt.value} className={`flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl border-2 transition-colors ${form.payment_method === opt.value ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}>
                     <input
