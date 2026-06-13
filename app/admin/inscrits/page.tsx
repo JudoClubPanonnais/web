@@ -135,7 +135,8 @@ export default function AdminInscrits() {
   async function handleDelete() {
     if (!selected) return
     if (!confirm(`Supprimer l'inscription de ${selected.first_name} ${selected.last_name} ?`)) return
-    await fetch('/api/admin/registrations', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: selected.id }) })
+    const res = await fetch('/api/admin/registrations', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: selected.id }) })
+    if (!res.ok) { alert('Erreur lors de la suppression. Réessayez.'); return }
     setList(l => l.filter(i => i.id !== selected.id))
     setSelected(null)
   }
@@ -365,6 +366,11 @@ export default function AdminInscrits() {
             {!isCoach ? (
               <div className="border-t pt-5 mt-2 space-y-4">
                 <h3 className="font-bold text-gray-800 text-sm">Paiement</h3>
+                <div className="text-xs text-gray-500">
+                  Type : <span className="font-medium">{selected.course_type}</span>
+                  {' · '}Versements : <span className="font-medium">{selected.payment_installments}x</span>
+                  {selected.payment_method && <>{' · '}<span className="font-medium">{selected.payment_method === 'transfer' ? 'Virement' : selected.payment_method === 'cash' ? 'Espèces/Chèque' : 'Carte'}</span></>}
+                </div>
                 {selected.price > 0 ? (
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     <div className="bg-gray-50 rounded-xl p-3 text-center">
