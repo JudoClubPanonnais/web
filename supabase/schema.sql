@@ -192,3 +192,22 @@ insert into social_links (platform, url, icon, label, sort_order) values
   ('instagram', 'https://www.instagram.com/judoclubpanonnais', 'instagram', 'Instagram', 2),
   ('youtube', 'https://www.youtube.com/@judoclubpanonnais', 'youtube', 'YouTube', 3)
 on conflict do nothing;
+
+-- Colonnes paiement pour inscriptions (à exécuter si pas déjà fait)
+alter table course_registrations add column if not exists price integer default 0;
+alter table course_registrations add column if not exists payment_installments integer default 1;
+alter table course_registrations add column if not exists payment_method text default 'cash';
+alter table course_registrations add column if not exists course_type text default 'payant';
+alter table course_registrations add column if not exists payment_status text default 'pending';
+alter table course_registrations add column if not exists amount_paid integer default 0;
+
+-- Table historique des paiements
+create table if not exists payment_history (
+  id uuid primary key default gen_random_uuid(),
+  registration_id uuid references course_registrations(id) on delete cascade,
+  amount integer not null,
+  payment_method text,
+  payment_date date default current_date,
+  note text,
+  created_at timestamp default now()
+);

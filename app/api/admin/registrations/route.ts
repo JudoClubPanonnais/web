@@ -12,7 +12,7 @@ function getSupabase() {
 export async function GET() {
   try {
     const { data } = await getSupabase().from('course_registrations')
-      .select('id, first_name, last_name, email, phone, birth_date, address, status, medical_notes, created_at, course_id, courses(name)')
+      .select('id, first_name, last_name, email, phone, birth_date, address, status, medical_notes, created_at, course_id, courses(name), price, payment_status, payment_installments, payment_method, amount_paid, course_type')
       .order('created_at', { ascending: false })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const registrations = (data || []).map((r: any) => ({
@@ -35,9 +35,21 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const { id } = await req.json()
+    if (!id) return NextResponse.json({ error: 'ID requis' }, { status: 400 })
+    const { error } = await getSupabase().from('course_registrations').delete().eq('id', id)
+    if (error) throw error
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { first_name, last_name, email, phone, birth_date, course, medical_notes } = await req.json()
+    const { first_name, last_name, email, phone, birth_date, course, medical_notes, course_type, price, payment_installments, payment_method } = await req.json()
     if (!first_name || !last_name || !email) {
       return NextResponse.json({ error: 'Prénom, nom et email requis' }, { status: 400 })
     }
@@ -54,6 +66,10 @@ export async function POST(req: NextRequest) {
       course_id: courseRow?.id || null,
       medical_notes: medical_notes || null,
       status: 'pending',
+      course_type: course_type || 'payant',
+      price: typeof price === 'number' ? price : 0,
+      payment_installments: typeof payment_installments === 'number' ? payment_installments : 1,
+      payment_method: payment_method || null,
     })
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })

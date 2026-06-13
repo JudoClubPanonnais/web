@@ -21,6 +21,8 @@ export async function POST(req: NextRequest) {
     // Trouver le cours correspondant
     const { data: courseData } = await getSupabase().from('courses').select('id').ilike('name', `%${course.split('(')[0].trim()}%`).limit(1).single()
 
+    const { course_type, price, payment_installments, payment_method } = body
+
     const { error } = await getSupabase().from('course_registrations').insert({
       course_id: courseData?.id || null,
       first_name: firstName,
@@ -33,6 +35,10 @@ export async function POST(req: NextRequest) {
       emergency_phone: emergencyPhone || null,
       medical_notes: medicalNotes || null,
       status: 'pending',
+      course_type: course_type || 'payant',
+      price: typeof price === 'number' ? price : 0,
+      payment_installments: typeof payment_installments === 'number' ? payment_installments : 1,
+      payment_method: payment_method || null,
     })
 
     if (error) throw error
