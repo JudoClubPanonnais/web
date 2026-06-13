@@ -31,7 +31,7 @@ function InscriptionForm() {
     address: '', course: prefill, emergencyContact: '', emergencyPhone: '',
     medicalNotes: '', acceptCgu: false,
     payment_installments: 1,
-    payment_method: 'card' as 'card' | 'transfer',
+    payment_method: 'transfer' as 'transfer',
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
@@ -160,7 +160,6 @@ function InscriptionForm() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Moyen de paiement</label>
               <div className="space-y-2">
                 {[
-                  { value: 'card', label: 'Carte bancaire (en ligne)' },
                   { value: 'transfer', label: 'Virement bancaire' },
                 ].map(opt => (
                   <label key={opt.value} className={`flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl border-2 transition-colors ${form.payment_method === opt.value ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}>
