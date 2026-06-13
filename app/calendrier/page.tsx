@@ -1,16 +1,94 @@
 'use client'
 import Link from 'next/link'
 
+const DOJO_LUCINE = {
+  name: 'Dojo Lucine Ignas',
+  address: 'Rue Lucine Ignas, 97412 Bras-Panon — à côté de la mairie',
+  mapsUrl: 'https://maps.google.com/?q=Rue+Lucine+Ignas+97412+Bras-Panon+La+Réunion',
+}
+
+const DOJO_CHAMP = {
+  name: 'Dojo Champ de Foire',
+  address: 'Champ de Foire, 97412 Bras-Panon — face à la médiathèque',
+  mapsUrl: 'https://maps.google.com/?q=Champ+de+Foire+97412+Bras-Panon+La+Réunion',
+}
+
 const COURSES = [
-  { name: 'Baby Judo', day: 'Mercredi', time: '09h00 – 10h00', age: '4 – 6 ans', level: 'Débutant', color: 'bg-yellow-100 border-yellow-300', icon: '🟡' },
-  { name: 'Mini Poussins', day: 'Mercredi', time: '10h00 – 11h00', age: '6 – 8 ans', level: 'Débutant', color: 'bg-orange-100 border-orange-300', icon: '🟠' },
-  { name: 'Poussins / Benjamins', day: 'Mercredi', time: '11h00 – 12h00', age: '8 – 12 ans', level: 'Débutant', color: 'bg-blue-100 border-blue-300', icon: '🔵' },
-  { name: 'Minimes / Cadets', day: 'Mardi', time: '18h00 – 19h30', age: '12 – 17 ans', level: 'Intermédiaire', color: 'bg-green-100 border-green-300', icon: '🟢' },
-  { name: 'Juniors / Seniors', day: 'Mardi', time: '19h30 – 21h00', age: '17 ans et +', level: 'Avancé', color: 'bg-red-100 border-red-300', icon: '🔴' },
-  { name: 'Juniors / Seniors', day: 'Jeudi', time: '19h30 – 21h00', age: '17 ans et +', level: 'Avancé', color: 'bg-red-100 border-red-300', icon: '🔴' },
-  { name: 'Judo Loisir Adultes', day: 'Vendredi', time: '18h30 – 20h00', age: '18 ans et +', level: 'Tous niveaux', color: 'bg-purple-100 border-purple-300', icon: '🟣' },
-  { name: 'Cours Spécial TSA', day: 'Samedi', time: '09h00 – 10h00', age: '5 – 16 ans', level: 'Adapté', color: 'bg-teal-100 border-teal-300', icon: '🩵' },
-  { name: 'Autodéfense Femmes', day: 'Samedi', time: '10h00 – 11h30', age: '16 ans et +', level: 'Tous niveaux', color: 'bg-pink-100 border-pink-300', icon: '💗' },
+  // LUNDI
+  {
+    group: 'Groupe 1',
+    name: 'Baby Judo',
+    day: 'Lundi',
+    time: '16h00 – 17h00',
+    age: '3 – 5 ans',
+    color: 'bg-yellow-100 border-yellow-300',
+    dojo: DOJO_LUCINE,
+  },
+  {
+    group: 'Groupe 2',
+    name: 'Enfants',
+    day: 'Lundi',
+    time: '17h00 – 18h00',
+    age: '6 – 10 ans',
+    color: 'bg-orange-100 border-orange-300',
+    dojo: DOJO_LUCINE,
+  },
+  {
+    group: 'Groupe 3',
+    name: 'Ados / Adultes',
+    day: 'Lundi',
+    time: '18h00 – 19h00',
+    age: '10 ans et +',
+    color: 'bg-blue-100 border-blue-300',
+    dojo: DOJO_LUCINE,
+  },
+  // MERCREDI
+  {
+    group: 'Groupe 1',
+    name: 'Baby Judo',
+    day: 'Mercredi',
+    time: '15h00 – 16h00',
+    age: '3 – 5 ans',
+    color: 'bg-yellow-100 border-yellow-300',
+    dojo: DOJO_CHAMP,
+  },
+  {
+    group: 'Groupe 2',
+    name: 'Enfants',
+    day: 'Mercredi',
+    time: '16h00 – 17h00',
+    age: '6 – 10 ans',
+    color: 'bg-orange-100 border-orange-300',
+    dojo: DOJO_CHAMP,
+  },
+  {
+    group: 'Groupe 3',
+    name: 'Ados / Adultes',
+    day: 'Mercredi',
+    time: '17h00 – 18h30',
+    age: '10 ans et +',
+    color: 'bg-blue-100 border-blue-300',
+    dojo: DOJO_CHAMP,
+  },
+  // VENDREDI
+  {
+    group: 'Groupe 2',
+    name: 'Enfants',
+    day: 'Vendredi',
+    time: '17h00 – 18h30',
+    age: '6 – 10 ans',
+    color: 'bg-orange-100 border-orange-300',
+    dojo: DOJO_LUCINE,
+  },
+  {
+    group: 'Groupe 3',
+    name: 'Ados / Adultes',
+    day: 'Vendredi',
+    time: '17h00 – 18h30',
+    age: '10 ans et +',
+    color: 'bg-blue-100 border-blue-300',
+    dojo: DOJO_LUCINE,
+  },
 ]
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
@@ -32,6 +110,15 @@ const EVENT_COLORS: Record<string, string> = {
   grade: 'bg-blue-100 text-blue-700 border-blue-200',
 }
 
+const TARIFS = [
+  { label: 'Baby Judo (3–5 ans)', price: '200 € / an' },
+  { label: 'Enfants (6–10 ans)', price: '210 € / an' },
+  { label: 'Ados / Adultes (10 ans et +)', price: '220 € / an' },
+  { label: 'Cours TSA', price: 'Tarif adapté (nous contacter)' },
+  { label: 'Autodéfense Femmes', price: 'Gratuit' },
+  { label: 'Cours d\'essai', price: 'Gratuit (sans engagement)' },
+]
+
 export default function CalendrierPage() {
   const groupedByDay = DAYS.reduce((acc, day) => {
     acc[day] = COURSES.filter(c => c.day === day)
@@ -51,7 +138,7 @@ export default function CalendrierPage() {
         {/* HORAIRES COURS */}
         <section className="mb-16">
           <h2 className="text-2xl md:text-3xl font-black text-[#1e3a5f] mb-8">Horaires des cours</h2>
-          <div className="grid gap-4">
+          <div className="grid gap-8">
             {DAYS.filter(d => groupedByDay[d].length > 0).map(day => (
               <div key={day}>
                 <h3 className="font-bold text-lg text-gray-700 mb-3 flex items-center gap-2">
@@ -60,18 +147,26 @@ export default function CalendrierPage() {
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {groupedByDay[day].map((c, i) => (
                     <div key={i} className={`border-2 rounded-2xl p-5 ${c.color}`}>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg">{c.icon}</span>
-                        <span className="font-bold text-gray-800">{c.name}</span>
+                      <div className="mb-2">
+                        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{c.group}</span>
+                        <div className="font-bold text-gray-800 text-lg">{c.name}</div>
                       </div>
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <div>{c.time}</div>
+                      <div className="space-y-1 text-sm text-gray-600 mb-3">
+                        <div className="font-medium">{c.time}</div>
                         <div>{c.age}</div>
-                        <div>{c.level}</div>
-                        <div>Dojo JCP — Bras Panon</div>
+                        <div className="font-medium text-gray-700">{c.dojo.name}</div>
+                        <div className="text-xs text-gray-500">{c.dojo.address}</div>
+                        <a
+                          href={c.dojo.mapsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          Voir sur Google Maps
+                        </a>
                       </div>
-                      <Link href={`/inscription?cours=${encodeURIComponent(c.name)}`} className="mt-3 block text-center py-2 px-4 bg-[#1e3a5f] text-white rounded-lg text-sm font-medium hover:bg-[#0f1f33] transition-colors">
-                        S'inscrire →
+                      <Link href={`/inscription?cours=${encodeURIComponent(c.name)}`} className="mt-1 block text-center py-2 px-4 bg-[#1e3a5f] text-white rounded-lg text-sm font-medium hover:bg-[#0f1f33] transition-colors">
+                        S'inscrire
                       </Link>
                     </div>
                   ))}
@@ -81,8 +176,8 @@ export default function CalendrierPage() {
           </div>
         </section>
 
-        {/* ÉVÉNEMENTS */}
-        <section>
+        {/* EVENEMENTS */}
+        <section className="mb-16">
           <h2 className="text-2xl md:text-3xl font-black text-[#1e3a5f] mb-8">Événements à venir</h2>
           <div className="space-y-4">
             {EVENTS.map((ev, i) => {
@@ -99,7 +194,7 @@ export default function CalendrierPage() {
                     <div className="flex items-start gap-3 flex-wrap">
                       <h3 className="font-bold text-gray-900 text-lg">{ev.title}</h3>
                       <span className={`badge border ${EVENT_COLORS[ev.type]}`}>
-                        {ev.type === 'competition' ? '🏆 Compétition' : ev.type === 'stage' ? '🎓 Stage' : ev.type === 'grade' ? '🥋 Passage de grades' : '🎉 Événement'}
+                        {ev.type === 'competition' ? 'Compétition' : ev.type === 'stage' ? 'Stage' : ev.type === 'grade' ? 'Passage de grades' : 'Événement'}
                       </span>
                     </div>
                     <p className="text-gray-500 text-sm mt-1">{ev.desc}</p>
@@ -111,12 +206,26 @@ export default function CalendrierPage() {
           </div>
         </section>
 
+        {/* TARIFS */}
+        <section className="mb-16">
+          <h2 className="text-2xl md:text-3xl font-black text-[#1e3a5f] mb-8">Tarifs saison 2026–2027</h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {TARIFS.map((t, i) => (
+              <div key={i} className="card p-5 flex flex-col gap-1">
+                <div className="font-semibold text-gray-800">{t.label}</div>
+                <div className="text-2xl font-black text-[#1e3a5f]">{t.price}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-400 mt-4">Licences FFJDA incluses. Tarifs solidaires sur demande. Cours d'essai gratuit et sans engagement.</p>
+        </section>
+
         {/* CTA Inscription */}
-        <div className="mt-16 bg-orange-50 border-2 border-orange-200 rounded-2xl p-8 text-center">
+        <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-8 text-center">
           <h3 className="text-2xl font-bold text-[#1e3a5f] mb-4">Prêt à rejoindre le club ?</h3>
           <p className="text-gray-600 mb-6">Inscrivez-vous en ligne en quelques minutes. Notre équipe vous contactera rapidement.</p>
           <Link href="/inscription" className="btn-primary text-base px-8 py-4">
-            Je m'inscris →
+            Je m'inscris
           </Link>
         </div>
       </div>

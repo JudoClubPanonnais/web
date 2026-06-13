@@ -1,39 +1,64 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
-const COURSES = [
-  'Baby Judo (Mercredi 09h–10h, 4–6 ans)',
-  'Mini Poussins (Mercredi 10h–11h, 6–8 ans)',
-  'Poussins / Benjamins (Mercredi 11h–12h, 8–12 ans)',
-  'Minimes / Cadets (Mardi 18h–19h30, 12–17 ans)',
-  'Juniors / Seniors (Mardi 19h30–21h, 17+ ans)',
-  'Juniors / Seniors (Jeudi 19h30–21h, 17+ ans)',
-  'Judo Loisir Adultes (Vendredi 18h30–20h, 18+ ans)',
-  'Cours Spécial TSA (Samedi 09h–10h, 5–16 ans)',
-  'Autodéfense Femmes (Samedi 10h–11h30, 16+ ans)',
+type CourseType = 'essai' | 'payant' | 'gratuit' | 'tsa'
+
+interface CourseOption {
+  label: string
+  type: CourseType
+  price: number
+}
+
+const COURSES: CourseOption[] = [
+  { label: "Cours d'essai — Groupe 1 Baby Judo (3–5 ans) — Gratuit", type: 'essai', price: 0 },
+  { label: "Cours d'essai — Groupe 2 Enfants (6–10 ans) — Gratuit", type: 'essai', price: 0 },
+  { label: "Cours d'essai — Groupe 3 Ados/Adultes (10 ans et +) — Gratuit", type: 'essai', price: 0 },
+  { label: 'Baby Judo — Lundi 16h–17h & Mercredi 15h–16h (3–5 ans) — 200€/an', type: 'payant', price: 200 },
+  { label: 'Enfants — Lundi 17h–18h, Mercredi 16h–17h & Vendredi 17h–18h30 (6–10 ans) — 210€/an', type: 'payant', price: 210 },
+  { label: 'Ados/Adultes — Lundi 18h–19h, Mercredi 17h–18h30 & Vendredi 17h–18h30 (10 ans+) — 220€/an', type: 'payant', price: 220 },
+  { label: 'Cours Spécial TSA — Tarif adapté (nous contacter)', type: 'tsa', price: 0 },
+  { label: 'Autodéfense Femmes — Gratuit', type: 'gratuit', price: 0 },
 ]
 
 function InscriptionForm() {
   const params = useSearchParams()
   const prefill = params.get('cours') || ''
+
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', birthDate: '',
     address: '', course: prefill, emergencyContact: '', emergencyPhone: '',
     medicalNotes: '', acceptCgu: false,
+    payment_installments: 1,
+    payment_method: 'cash' as 'card' | 'transfer' | 'cash',
   })
-  const [status, setStatus] = useState<'idle'|'loading'|'success'|'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
-  function set(k: string, v: string | boolean) { setForm(f => ({ ...f, [k]: v })) }
+  function set(k: string, v: string | boolean | number) { setForm(f => ({ ...f, [k]: v })) }
+
+  const selectedCourse = COURSES.find(c => c.label === form.course) || null
+  const courseType: CourseType = selectedCourse?.type || 'payant'
+  const price = selectedCourse?.price || 0
+  const isPaid = courseType === 'payant'
+  const installmentAmount = isPaid && form.payment_installments > 0
+    ? Math.ceil(price / form.payment_installments)
+    : 0
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.acceptCgu) return
     setStatus('loading')
     try {
+      const payload = {
+        ...form,
+        course_type: courseType,
+        price: price * 100, // centimes
+        payment_installments: isPaid ? form.payment_installments : 1,
+        payment_method: isPaid ? form.payment_method : null,
+      }
       const res = await fetch('/api/courses/register', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form),
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
       })
       if (res.ok) setStatus('success')
       else setStatus('error')
@@ -42,7 +67,6 @@ function InscriptionForm() {
 
   if (status === 'success') return (
     <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-      <div className="text-6xl mb-6">🥋</div>
       <h2 className="text-3xl font-black text-[#1e3a5f] mb-4">Inscription reçue !</h2>
       <p className="text-gray-600 mb-8">
         Merci {form.firstName} ! Votre demande d'inscription a bien été envoyée.
@@ -78,8 +102,84 @@ function InscriptionForm() {
         </h3>
         <select required value={form.course} onChange={e => set('course', e.target.value)} className="input-field">
           <option value="">-- Sélectionnez un cours --</option>
-          {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+          {COURSES.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
         </select>
+
+        {/* Info cours essai/gratuit */}
+        {form.course && !isPaid && courseType !== 'tsa' && (
+          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800">
+            {courseType === 'essai'
+              ? 'Cours d\'essai gratuit et sans engagement. Bienvenue pour découvrir le judo !'
+              : 'Ce cours est entièrement gratuit. Aucun paiement requis.'}
+          </div>
+        )}
+        {form.course && courseType === 'tsa' && (
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800">
+            Le tarif pour le cours TSA est adapté à chaque situation. Notre équipe vous contactera pour en discuter.
+          </div>
+        )}
+
+        {/* Section paiement pour cours payants */}
+        {form.course && isPaid && (
+          <div className="mt-6 space-y-5 border-t pt-5">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-gray-800">Montant annuel</span>
+              <span className="text-2xl font-black text-[#1e3a5f]">{price} €</span>
+            </div>
+
+            {/* Modalité de paiement */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Modalité de paiement</label>
+              <div className="flex flex-wrap gap-3">
+                {[1, 2, 3, 4].map(n => (
+                  <label key={n} className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-xl border-2 transition-colors ${form.payment_installments === n ? 'border-orange-500 bg-orange-50 text-orange-700 font-semibold' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
+                    <input
+                      type="radio"
+                      name="installments"
+                      value={n}
+                      checked={form.payment_installments === n}
+                      onChange={() => set('payment_installments', n)}
+                      className="sr-only"
+                    />
+                    {n}x
+                    {form.payment_installments === n && (
+                      <span className="text-xs font-normal ml-1">= {Math.ceil(price / n)} € / échéance</span>
+                    )}
+                  </label>
+                ))}
+              </div>
+              {form.payment_installments > 1 && (
+                <p className="text-sm text-gray-500 mt-2">
+                  {price} € en {form.payment_installments} fois = <strong>{installmentAmount} € par échéance</strong>
+                </p>
+              )}
+            </div>
+
+            {/* Moyen de paiement */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Moyen de paiement</label>
+              <div className="space-y-2">
+                {[
+                  { value: 'card', label: 'Carte bancaire (en ligne)' },
+                  { value: 'transfer', label: 'Virement bancaire' },
+                  { value: 'cash', label: 'Espèces / Chèque au club' },
+                ].map(opt => (
+                  <label key={opt.value} className={`flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl border-2 transition-colors ${form.payment_method === opt.value ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}>
+                    <input
+                      type="radio"
+                      name="payment_method"
+                      value={opt.value}
+                      checked={form.payment_method === opt.value}
+                      onChange={() => set('payment_method', opt.value)}
+                      className="accent-orange-500"
+                    />
+                    <span className="text-sm text-gray-700">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Contact urgence */}
@@ -116,7 +216,7 @@ function InscriptionForm() {
 
       <button type="submit" disabled={status === 'loading'}
         className="btn-primary w-full py-4 text-base disabled:opacity-50">
-        {status === 'loading' ? 'Envoi en cours...' : 'Envoyer ma demande d\'inscription →'}
+        {status === 'loading' ? 'Envoi en cours...' : "Envoyer ma demande d'inscription"}
       </button>
       {status === 'error' && <p className="text-red-500 text-sm text-center">Une erreur est survenue. Réessayez ou contactez-nous.</p>}
     </form>
@@ -128,7 +228,7 @@ export default function InscriptionPage() {
     <>
       <section className="bg-gradient-to-br from-[#1e3a5f] to-[#0f1f33] text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl md:text-4xl font-black mb-4">🥋 Inscription aux cours</h1>
+          <h1 className="text-3xl md:text-4xl font-black mb-4">Inscription aux cours</h1>
           <p className="text-gray-300">Rejoignez le Judo Club Panonnais. Remplissez le formulaire ci-dessous, notre équipe vous contactera sous 48h.</p>
         </div>
       </section>
@@ -141,21 +241,29 @@ export default function InscriptionPage() {
           </div>
           <div className="space-y-4">
             <div className="card p-6">
-              <h3 className="font-bold text-[#1e3a5f] mb-4">📍 Nous trouver</h3>
-              <p className="text-gray-600 text-sm">Dojo Judo Club Panonnais<br />Bras Panon — 97412<br />Île de La Réunion</p>
+              <h3 className="font-bold text-[#1e3a5f] mb-4">Nous trouver</h3>
+              <p className="text-gray-600 text-sm">
+                <strong>Dojo Lucine Ignas</strong><br />
+                Rue Lucine Ignas, 97412 Bras-Panon<br />
+                (à côté de la mairie)<br /><br />
+                <strong>Dojo Champ de Foire</strong><br />
+                Champ de Foire, 97412 Bras-Panon<br />
+                (face à la médiathèque)
+              </p>
             </div>
             <div className="card p-6">
-              <h3 className="font-bold text-[#1e3a5f] mb-4">📞 Contact</h3>
+              <h3 className="font-bold text-[#1e3a5f] mb-4">Contact</h3>
               <p className="text-gray-600 text-sm"><a href="mailto:contact@judoclubpanonnais.fr" className="text-orange-500 hover:underline">contact@judoclubpanonnais.fr</a></p>
             </div>
             <div className="card p-6">
-              <h3 className="font-bold text-[#1e3a5f] mb-4">💰 Tarifs indicatifs</h3>
+              <h3 className="font-bold text-[#1e3a5f] mb-4">Tarifs</h3>
               <ul className="text-sm text-gray-600 space-y-2">
-                <li>• Baby Judo : 150 € / an</li>
-                <li>• Enfants : 200 € / an</li>
-                <li>• Ados/Adultes : 250 € / an</li>
+                <li>• Baby Judo (3–5 ans) : 200 € / an</li>
+                <li>• Enfants (6–10 ans) : 210 € / an</li>
+                <li>• Ados/Adultes (10 ans+) : 220 € / an</li>
                 <li>• Cours TSA : Tarif adapté</li>
-                <li>• Autodéfense femmes : Gratuit</li>
+                <li>• Autodéfense Femmes : Gratuit</li>
+                <li>• Cours d'essai : Gratuit</li>
               </ul>
               <p className="text-xs text-gray-400 mt-3">Licences FFJDA incluses. Tarifs solidaires sur demande.</p>
             </div>
