@@ -31,7 +31,7 @@ function InscriptionForm() {
     address: '', course: prefill, emergencyContact: '', emergencyPhone: '',
     medicalNotes: '', acceptCgu: false,
     payment_installments: 1,
-    payment_method: 'transfer' as 'transfer',
+    payment_method: 'transfer' as 'card' | 'transfer' | 'cash',
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 
@@ -109,7 +109,7 @@ function InscriptionForm() {
         {form.course && !isPaid && courseType !== 'tsa' && (
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-800">
             {courseType === 'essai'
-              ? 'Cours d\'essai gratuit et sans engagement. Bienvenue pour découvrir le judo !'
+              ? '6 cours d\'essai offerts, sans engagement. À l\'issue des 6 séances, vous pourrez vous inscrire officiellement.'
               : 'Ce cours est entièrement gratuit. Aucun paiement requis.'}
           </div>
         )}
@@ -161,6 +161,7 @@ function InscriptionForm() {
               <div className="space-y-2">
                 {[
                   { value: 'transfer', label: 'Virement bancaire' },
+                  { value: 'cash', label: 'Espèces / Chèque au club' },
                 ].map(opt => (
                   <label key={opt.value} className={`flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl border-2 transition-colors ${form.payment_method === opt.value ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}>
                     <input
