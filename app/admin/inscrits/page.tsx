@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useAdminRole } from '../layout'
+import { useAdminRole } from '@/lib/adminRole'
 
 type CourseType = 'essai' | 'payant' | 'gratuit' | 'tsa'
 type PaymentMethod = 'card' | 'transfer' | 'cash'

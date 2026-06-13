@@ -1,13 +1,9 @@
 'use client'
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-
-type Role = 'gerant' | 'coach' | null
-
-export const AdminRoleContext = createContext<Role>(null)
-export function useAdminRole() { return useContext(AdminRoleContext) }
+import { AdminRoleContext, type Role } from '@/lib/adminRole'
 
 const NAV = [
   { href: '/admin', label: 'Tableau de bord', coachAllowed: false },
