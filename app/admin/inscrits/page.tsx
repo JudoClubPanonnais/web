@@ -88,6 +88,8 @@ export default function AdminInscrits() {
   const [emailMsg, setEmailMsg] = useState('')
   const [emailSending, setEmailSending] = useState(false)
   const [emailResult, setEmailResult] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   function loadList() {
     fetch('/api/admin/registrations').then(r => r.json()).then(d => {
@@ -113,6 +115,7 @@ export default function AdminInscrits() {
     setShowPayForm(false)
     setShowEmailModal(false)
     setEmailResult('')
+    setConfirmDelete(false)
     if (!isCoach) loadPayHistory(i.id)
   }
 
@@ -134,11 +137,13 @@ export default function AdminInscrits() {
 
   async function handleDelete() {
     if (!selected) return
-    if (!confirm(`Supprimer l'inscription de ${selected.first_name} ${selected.last_name} ?`)) return
+    setDeleting(true)
     const res = await fetch('/api/admin/registrations', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: selected.id }) })
-    if (!res.ok) { alert('Erreur lors de la suppression. Réessayez.'); return }
+    setDeleting(false)
+    if (!res.ok) { setConfirmDelete(false); return }
     setList(l => l.filter(i => i.id !== selected.id))
     setSelected(null)
+    setConfirmDelete(false)
   }
 
   async function handlePayFormSubmit(e: React.FormEvent) {
@@ -482,10 +487,19 @@ export default function AdminInscrits() {
             <div className="flex flex-wrap gap-2 mt-6">
               <button onClick={() => { updateStatus(selected.id, 'confirmed'); setSelected(null) }} className="flex-1 py-2 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 transition-colors">Confirmer</button>
               <button onClick={() => { updateStatus(selected.id, 'cancelled'); setSelected(null) }} className="flex-1 py-2 bg-yellow-500 text-white rounded-xl text-sm font-medium hover:bg-yellow-600 transition-colors">Annuler</button>
-              {!isCoach && (
-                <button onClick={handleDelete} className="py-2 px-4 bg-red-500 text-white rounded-xl text-sm font-medium hover:bg-red-600 transition-colors">Supprimer</button>
+              {!isCoach && !confirmDelete && (
+                <button onClick={() => setConfirmDelete(true)} className="py-2 px-4 bg-red-100 text-red-600 rounded-xl text-sm font-medium hover:bg-red-200 transition-colors">Supprimer</button>
               )}
             </div>
+            {!isCoach && confirmDelete && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between gap-3">
+                <span className="text-sm text-red-700 font-medium">Supprimer définitivement ?</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 text-xs border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100">Annuler</button>
+                  <button onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50">{deleting ? 'Suppression...' : 'Confirmer'}</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
