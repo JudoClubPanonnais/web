@@ -22,6 +22,7 @@ interface Inscrit {
   payment_method: PaymentMethod | null
   amount_paid: number
   course_type: CourseType
+  belt_color: string | null
 }
 
 interface PaymentHistoryEntry {
@@ -121,6 +122,11 @@ export default function AdminInscrits() {
   async function updateStatus(id: string, status: string) {
     await fetch('/api/admin/registrations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) })
     setList(l => l.map(i => i.id === id ? { ...i, status } : i))
+  }
+
+  async function updateBelt(id: string, belt_color: string) {
+    await fetch('/api/admin/registrations', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, belt_color }) })
+    setList(l => l.map(i => i.id === id ? { ...i, belt_color } : i))
   }
 
   async function handleDelete() {
@@ -263,7 +269,7 @@ export default function AdminInscrits() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Nom', 'Email', 'Téléphone', 'Cours', 'Statut', !isCoach ? 'Paiement' : '', 'Date', 'Actions'].filter(Boolean).map(h => (
+                {['Nom', 'Email', 'Téléphone', 'Cours', 'Ceinture', 'Statut', !isCoach ? 'Paiement' : '', 'Date', 'Actions'].filter(Boolean).map(h => (
                   <th key={h} className="px-4 py-3 text-left font-semibold text-gray-600 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -283,6 +289,18 @@ export default function AdminInscrits() {
                   <td className="px-4 py-3 text-gray-500">{i.email}</td>
                   <td className="px-4 py-3 text-gray-500">{i.phone || '—'}</td>
                   <td className="px-4 py-3 text-gray-600 max-w-xs truncate">{i.course}</td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={i.belt_color || ''}
+                      onChange={e => updateBelt(i.id, e.target.value)}
+                      className="text-xs border border-gray-200 rounded-lg px-2 py-1 bg-white focus:outline-none focus:border-orange-400"
+                    >
+                      <option value="">—</option>
+                      {['blanc', 'jaune/blanc', 'jaune', 'jaune/orange', 'orange', 'orange/vert', 'vert', 'vert/bleu', 'bleu', 'marron', 'noir'].map(b => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`badge text-xs ${i.status === 'confirmed' ? 'bg-green-100 text-green-700' : i.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
                       {i.status === 'confirmed' ? 'Confirme' : i.status === 'pending' ? 'En attente' : 'Annule'}

@@ -12,7 +12,7 @@ function getSupabase() {
 export async function GET() {
   try {
     const { data } = await getSupabase().from('course_registrations')
-      .select('id, first_name, last_name, email, phone, birth_date, address, status, medical_notes, created_at, course_id, courses(name), price, payment_status, payment_installments, payment_method, amount_paid, course_type')
+      .select('id, first_name, last_name, email, phone, birth_date, address, status, medical_notes, created_at, course_id, courses(name), price, payment_status, payment_installments, payment_method, amount_paid, course_type, belt_color')
       .order('created_at', { ascending: false })
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const registrations = (data || []).map((r: any) => ({
@@ -27,8 +27,12 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { id, status } = await req.json()
-    await getSupabase().from('course_registrations').update({ status }).eq('id', id)
+    const body = await req.json()
+    const { id, status, belt_color } = body
+    const update: Record<string, string> = {}
+    if (status !== undefined) update.status = status
+    if (belt_color !== undefined) update.belt_color = belt_color
+    await getSupabase().from('course_registrations').update(update).eq('id', id)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Erreur' }, { status: 500 })
