@@ -2,9 +2,9 @@
 import Link from 'next/link'
 
 const DOJO_LUCINE = {
-  name: 'Dojo Lucine Ignas',
-  address: 'Rue Lucine Ignas, 97412 Bras-Panon — à côté de la mairie',
-  mapsUrl: 'https://maps.google.com/?q=Rue+Lucine+Ignas+97412+Bras-Panon+La+Réunion',
+  name: 'Dojo Lucie Ignace',
+  address: 'Rue Lucie Ignace, 97412 Bras-Panon — en face de la piscine (complexe sportif)',
+  mapsUrl: 'https://maps.google.com/?q=Rue+Lucie+Ignace+97412+Bras-Panon+La+Réunion',
 }
 
 const DOJO_CHAMP = {
