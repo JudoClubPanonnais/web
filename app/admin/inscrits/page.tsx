@@ -224,8 +224,18 @@ export default function AdminInscrits() {
   }
 
   function exportCSV() {
-    const headers = ['Prénom', 'Nom', 'Email', 'Téléphone', 'Date naissance', 'Cours', 'Statut', 'Date inscription']
-    const rows = filtered.map(i => [i.first_name, i.last_name, i.email, i.phone || '', i.birth_date || '', i.course, i.status, new Date(i.created_at).toLocaleDateString('fr-FR')])
+    const headers = ['Prénom', 'Nom', 'Email', 'Téléphone', 'Date naissance', 'Cours', 'Ceinture', 'Statut', 'Type', 'Total (€)', 'Payé (€)', 'Reste (€)', 'Versements', 'Moyen paiement', 'Date inscription']
+    const rows = filtered.map(i => [
+      i.first_name, i.last_name, i.email, i.phone || '', i.birth_date || '',
+      i.course, i.belt_color || '',
+      i.status, i.course_type || '',
+      i.price > 0 ? (i.price / 100).toFixed(2) : '0',
+      (i.amount_paid / 100).toFixed(2),
+      i.price > 0 ? ((i.price - i.amount_paid) / 100).toFixed(2) : '0',
+      i.payment_installments || 1,
+      i.payment_method === 'transfer' ? 'Virement' : i.payment_method === 'cash' ? 'Especes/Cheque' : i.payment_method === 'card' ? 'Carte' : '',
+      new Date(i.created_at).toLocaleDateString('fr-FR'),
+    ])
     const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(';')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
