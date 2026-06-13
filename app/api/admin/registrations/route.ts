@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     // Chercher le cours par nom (maybeSingle ne lève pas d'erreur si absent)
     const { data: courseRow } = await getSupabase().from('courses').select('id').ilike('name', `%${course}%`).limit(1).maybeSingle()
 
-    const { error } = await getSupabase().from('course_registrations').insert({
+    const insertData = {
       first_name,
       last_name,
       email,
@@ -75,11 +75,17 @@ export async function POST(req: NextRequest) {
       price: typeof price === 'number' ? price : 0,
       payment_installments: typeof payment_installments === 'number' ? payment_installments : 1,
       payment_method: payment_method || null,
-    })
+    }
+    console.log('[POST /api/admin/registrations] insert:', insertData)
+    const { error } = await getSupabase().from('course_registrations').insert(insertData)
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('[POST /api/admin/registrations] supabase error:', error)
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
+    }
     return NextResponse.json({ success: true })
   } catch (e) {
+    console.error('[POST /api/admin/registrations] catch:', e)
     return NextResponse.json({ error: 'Erreur serveur', detail: String(e) }, { status: 500 })
   }
 }
