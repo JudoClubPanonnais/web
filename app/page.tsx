@@ -11,27 +11,15 @@ const CAUSES = [
   { slug: 'decouverte-ailleurs', name: "Découverte de l'ailleurs", icon: '✈️', goal: 5000, raised: 0, color: 'from-emerald-500 to-emerald-700', desc: "Le judo est une langue universelle. Partout où on pose un tatami, on se comprend." },
 ]
 
-const AMOUNTS = [10, 25, 50, 100, 250, 500]
-const IMPACTS: Record<number, string> = {
-  10: "Finance une séance pour un jeune",
-  50: "Finance un stage d'autodéfense",
-  100: "Finance un trimestre inclusif",
-  250: "Finance une place de voyage solidaire",
-  500: "Finance une action complète",
-}
+const DON_AMOUNTS = [5, 10, 25, 50, 100, 250]
 
 export default function HomePage() {
   const [causes, setCauses] = useState(CAUSES)
   const [sorted, setSorted] = useState(CAUSES)
-  const [selCause, setSelCause] = useState('')
-  const [amount, setAmount] = useState<number>(0)
-  const [custom, setCustom] = useState('')
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [msg, setMsg] = useState('')
-  const [anon, setAnon] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState('card')
-  const [status, setStatus] = useState<'idle'|'loading'|'error'>('idle')
+  const [showDonWidget, setShowDonWidget] = useState(false)
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
+  const [customAmount, setCustomAmount] = useState('')
+  const [addOneDonation, setAddOneDonation] = useState(false)
 
   useEffect(() => {
     fetch('/api/causes').then(r => r.json()).then(d => {
@@ -44,26 +32,21 @@ export default function HomePage() {
         setSorted([...m].sort((a, b) => b.raised - a.raised))
       }
     }).catch(() => {})
+
+    // HelloAsso widget resize listener
+    const handler = (e: MessageEvent) => {
+      const dataHeight = (e.data as { height?: number })?.height
+      const el = document.getElementById('haWidgetDonHome')
+      if (el && dataHeight && dataHeight > parseFloat(el.style.height || '0')) {
+        el.style.height = dataHeight + 'px'
+      }
+    }
+    window.addEventListener('message', handler)
+    return () => window.removeEventListener('message', handler)
   }, [])
 
-  const eff = custom ? parseInt(custom) || 0 : amount
-  const impactKey = [500, 250, 100, 50, 10].find(k => eff >= k)
-
-  async function donate(e: React.FormEvent) {
-    e.preventDefault()
-    if (!eff || eff < 1) return
-    setStatus('loading')
-    try {
-      const res = await fetch('/api/donations/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: eff * 100, cause_slug: selCause || null, donor_name: anon ? 'Anonyme' : name, donor_email: email, message: msg, anonymous: anon, payment_method: paymentMethod }),
-      })
-      const d = await res.json()
-      if (d.url) window.location.href = d.url
-      else setStatus('error')
-    } catch { setStatus('error') }
-  }
+  const effectiveAmount = customAmount ? parseInt(customAmount) || 0 : selectedAmount || 0
+  const totalAmount = effectiveAmount + (addOneDonation ? 1 : 0)
 
   return (
     <>
@@ -154,91 +137,111 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* DON */}
+      {/* DON — HelloAsso */}
       <section id="don" className="py-20 bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Faire un don</h2>
-            <p className="text-gray-500">100% reversé au projet. Reçu fiscal automatique.</p>
+            <p className="text-gray-500">100% reversé au projet. Reçu fiscal automatique via HelloAsso.</p>
           </div>
-          <div className="card p-8">
-            <form onSubmit={donate} className="space-y-6">
-              {/* Cause */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Choisissez une cause (optionnel)</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {[{slug:'',name:'Don général (toutes causes)',icon:''},...causes].map(c => (
-                    <button key={c.slug} type="button" onClick={() => setSelCause(c.slug)}
-                      className={`p-3 rounded-xl border-2 text-sm font-medium text-left transition-all ${selCause === c.slug ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-600 hover:border-gray-300'}`}>
-                      {c.slug ? `${c.icon} ${c.name}` : c.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Montant */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Montant de votre don</label>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-3">
-                  {AMOUNTS.map(a => (
-                    <button key={a} type="button" onClick={() => { setAmount(a); setCustom('') }}
-                      className={`py-2.5 rounded-xl border-2 font-semibold text-sm transition-all ${amount === a && !custom ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}>
-                      {a} €
-                    </button>
-                  ))}
-                </div>
-                <div className="relative">
-                  <input type="number" value={custom} onChange={e => { setCustom(e.target.value); setAmount(0) }}
-                    placeholder="Autre montant" min="1" className="input-field pr-10" />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">€</span>
-                </div>
-                {eff >= 10 && impactKey && <p className="text-sm text-green-600 mt-2 font-medium">{IMPACTS[impactKey]}</p>}
-                {eff >= 10 && <p className="text-xs text-blue-600 mt-1">Avantage fiscal : {Math.round(eff*0.66)} € remboursés (66% pour les particuliers)</p>}
+          <div className="card p-8 space-y-6">
+            {/* Sélection montant */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">Choisissez un montant</label>
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-3">
+                {DON_AMOUNTS.map(a => (
+                  <button key={a} type="button" onClick={() => { setSelectedAmount(a); setCustomAmount('') }}
+                    className={`py-2.5 rounded-xl border-2 font-semibold text-sm transition-all ${selectedAmount === a && !customAmount ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}>
+                    {a} €
+                  </button>
+                ))}
               </div>
-
-              {/* Identité */}
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <input type="checkbox" id="anon" checked={anon} onChange={e => setAnon(e.target.checked)} className="w-4 h-4 accent-orange-500" />
-                  <label htmlFor="anon" className="text-sm text-gray-600">Don anonyme</label>
-                </div>
-                {!anon && (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Votre nom (optionnel)" className="input-field" />
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email (reçu fiscal)" className="input-field" />
-                  </div>
-                )}
-                {anon && <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email pour le reçu fiscal (optionnel)" className="input-field" />}
+              <div className="relative">
+                <input type="number" value={customAmount} onChange={e => { setCustomAmount(e.target.value); setSelectedAmount(null) }}
+                  placeholder="Montant libre" min="1" className="input-field pr-10" />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">€</span>
               </div>
-              {/* Moyen de paiement */}
+            </div>
+
+            {/* Option +1€ solidaire */}
+            <label className="flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl border-2 transition-colors border-orange-200 bg-orange-50 hover:border-orange-400">
+              <input
+                type="checkbox"
+                checked={addOneDonation}
+                onChange={e => setAddOneDonation(e.target.checked)}
+                className="w-4 h-4 accent-orange-500"
+              />
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Moyen de paiement</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    { value: 'card', label: 'Carte bancaire' },
-                    { value: 'paypal', label: 'PayPal' },
-                    { value: 'transfer', label: 'Virement bancaire' },
-                  ].map(opt => (
-                    <button key={opt.value} type="button" onClick={() => setPaymentMethod(opt.value)}
-                      className={`py-2.5 px-3 rounded-xl border-2 font-medium text-sm transition-all text-center ${paymentMethod === opt.value ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-600 hover:border-orange-300'}`}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                <span className="text-sm font-semibold text-orange-700">+ 1 € solidaire en plus</span>
+                <p className="text-xs text-orange-600 mt-0.5">Pour amplifier l&apos;impact de votre don sur nos 5 causes</p>
               </div>
+            </label>
 
-              <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="Un message pour le club ? (optionnel)" rows={3} className="input-field resize-none" />
+            {effectiveAmount > 0 && (
+              <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 px-4 py-3 rounded-xl">
+                <span>Total de votre don</span>
+                <span className="font-bold text-[#1e3a5f] text-lg">{totalAmount} €</span>
+              </div>
+            )}
 
-              <button type="submit" disabled={!eff || eff < 1 || status === 'loading'}
-                className="btn-primary w-full py-4 text-base disabled:opacity-50 disabled:cursor-not-allowed">
-                {status === 'loading' ? 'Redirection...' : `Donner ${eff ? eff+' €' : ''} →`}
-              </button>
-              {status === 'error' && <p className="text-red-500 text-sm text-center">Une erreur est survenue.</p>}
-              <p className="text-xs text-gray-400 text-center">Paiement sécurisé par Stripe. 100% reversé au projet.</p>
-            </form>
+            {effectiveAmount >= 10 && (
+              <p className="text-xs text-blue-600">
+                Avantage fiscal estimé : <strong>{Math.round(totalAmount * 0.66)} € remboursés</strong> (66% pour les particuliers)
+              </p>
+            )}
+
+            {/* Bouton ouvrir widget */}
+            <button
+              type="button"
+              onClick={() => setShowDonWidget(true)}
+              disabled={effectiveAmount < 1}
+              className="btn-primary w-full py-4 text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {effectiveAmount > 0
+                ? `Donner ${totalAmount} € via HelloAsso →`
+                : 'Choisir un montant pour continuer'}
+            </button>
+
+            <div className="grid grid-cols-2 gap-3 text-xs text-gray-400 pt-2 border-t border-gray-100">
+              <div className="flex items-center gap-1.5">✅ Reçu fiscal automatique</div>
+              <div className="flex items-center gap-1.5">💸 100% reversé au projet</div>
+              <div className="flex items-center gap-1.5">🔒 Paiement sécurisé HelloAsso</div>
+              <div className="flex items-center gap-1.5">📊 66% déductible (particuliers)</div>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Modal widget HelloAsso Dons */}
+      {showDonWidget && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between p-5 border-b sticky top-0 bg-white z-10">
+              <div>
+                <h3 className="font-bold text-[#1e3a5f] text-lg">Faire un don — HelloAsso</h3>
+                <p className="text-sm text-gray-500">Montant sélectionné : <strong>{totalAmount} €</strong></p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDonWidget(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none w-8 h-8 flex items-center justify-center"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-4">
+              <iframe
+                id="haWidgetDonHome"
+                allowTransparency={true}
+                scrolling="auto"
+                src="https://www.helloasso.com/associations/judo-club-panonnais/formulaires/1/widget"
+                style={{ width: '100%', height: '750px', border: 'none' }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DÉFISCALISATION */}
       <section className="py-16 bg-[#1e3a5f] text-white">
@@ -246,9 +249,9 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-10 items-center">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold mb-4">Défiscalisez votre don</h2>
-              <p className="text-gray-300 mb-6">Association d'intérêt général — vos dons ouvrent droit à des avantages fiscaux importants.</p>
+              <p className="text-gray-300 mb-6">Association d&apos;intérêt général — vos dons ouvrent droit à des avantages fiscaux importants.</p>
               <div className="space-y-4">
-                {[['Particuliers','66% du don déductible de l\'impôt sur le revenu'],['Entreprises (mécénat)','60% du don déductible de l\'IS (art. 238 bis CGI)']].map(([t,d]) => (
+                {[['Particuliers',"66% du don déductible de l'impôt sur le revenu"],['Entreprises (mécénat)',"60% du don déductible de l'IS (art. 238 bis CGI)"]].map(([t,d]) => (
                   <div key={t} className="flex items-start gap-3 bg-white/10 rounded-xl p-4">
                     <div><div className="font-semibold">{t}</div><div className="text-gray-300 text-sm">{d}</div></div>
                   </div>
@@ -258,7 +261,7 @@ export default function HomePage() {
             <div className="text-center">
               <div className="bg-white/10 rounded-2xl p-8">
                 <div className="text-gray-300 mb-2 text-sm uppercase tracking-wide">Reçu fiscal automatique</div>
-                <div className="text-gray-300 text-sm">Un reçu vous est envoyé par email après chaque don pour votre déclaration d'impôts.</div>
+                <div className="text-gray-300 text-sm">Un reçu vous est envoyé par email après chaque don pour votre déclaration d&apos;impôts.</div>
               </div>
             </div>
           </div>
@@ -272,17 +275,17 @@ export default function HomePage() {
             <div>
               <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-6">Notre démarche pédagogique</h2>
               <p className="text-gray-600 leading-relaxed mb-6">
-                Fondé en 1882 par Jigoro Kano, le judo repose sur deux principes : l'utilisation optimale de l'énergie et la prospérité mutuelle.
+                Fondé en 1882 par Jigoro Kano, le judo repose sur deux principes : l&apos;utilisation optimale de l&apos;énergie et la prospérité mutuelle.
                 Notre dojo accueille plus de 80 pratiquants de tous âges dans une ambiance familiale, exigeante et bienveillante.
               </p>
               <blockquote className="border-l-4 border-orange-500 pl-6 italic text-gray-600 mb-6">
-                "Le judo m'a appris que la chute n'est pas une fin — c'est un début. Aujourd'hui, je veux que notre club soit ce tatami pour chaque enfant, chaque femme, chaque personne qui en a besoin."
+                &quot;Le judo m&apos;a appris que la chute n&apos;est pas une fin — c&apos;est un début. Aujourd&apos;hui, je veux que notre club soit ce tatami pour chaque enfant, chaque femme, chaque personne qui en a besoin.&quot;
                 <footer className="mt-2 text-sm font-semibold not-italic text-[#1e3a5f]">— La présidente du JCP</footer>
               </blockquote>
               <Link href="/inscription" className="btn-navy">Rejoindre le club →</Link>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {[['Respect','De l\'autre, de soi, des règles'],['Persévérance','Tomber, se relever, recommencer'],['Discipline','La rigueur du dojo dans la vie'],['Entraide','On grandit avec l\'autre']].map(([t,d]) => (
+              {[['Respect',"De l'autre, de soi, des règles"],['Persévérance','Tomber, se relever, recommencer'],['Discipline','La rigueur du dojo dans la vie'],['Entraide',"On grandit avec l'autre"]].map(([t,d]) => (
                 <div key={t} className="card p-5 text-center">
                   <div className="font-bold text-[#1e3a5f] mb-1">{t}</div>
                   <div className="text-gray-500 text-sm">{d}</div>
@@ -298,7 +301,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Le club en action</h2>
-            <p className="text-gray-500">Revivez l'ambiance de nos entraînements sur les tatamis de Bras Panon</p>
+            <p className="text-gray-500">Revivez l&apos;ambiance de nos entraînements sur les tatamis de Bras Panon</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
@@ -335,7 +338,7 @@ export default function HomePage() {
             ;(e.target as HTMLFormElement).reset()
           }}>
             <input name="email" type="email" required placeholder="votre@email.fr" className="flex-1 px-5 py-3 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-white text-base" />
-            <button type="submit" className="btn-navy py-3 px-6 whitespace-nowrap">S'inscrire</button>
+            <button type="submit" className="btn-navy py-3 px-6 whitespace-nowrap">S&apos;inscrire</button>
           </form>
         </div>
       </section>
