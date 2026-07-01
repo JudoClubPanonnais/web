@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 const ARTICLES = [
   { title: 'Le Judo Club Panonnais lance sa grande collecte solidaire', publication: 'Le Quotidien de La Réunion', date: '15 janvier 2026', excerpt: 'Le club judoka de Bras Panon lance une campagne de dons ambitieuse pour financer cinq causes sociales prioritaires à hauteur de 40 000 €. Un projet pédagogique inédit qui mêle sport, solidarité et développement social au cœur de l\'Est réunionnais.', featured: true, url: '#' },
@@ -8,12 +7,6 @@ const ARTICLES = [
   { title: 'Les judokas de Bras Panon s\'envolent pour le Japon', publication: 'Réunion La 1ère', date: '30 juin 2025', excerpt: 'Cinq jeunes pratiquants du Judo Club Panonnais ont participé à un voyage culturel et sportif au Japon, berceau du judo. Un séjour immersif qui a profondément marqué ces ambassadeurs en herbe.', featured: false, url: '#' },
   { title: 'La présidente du JCP récompensée pour son engagement social', publication: 'Zinfos974', date: '12 mars 2025', excerpt: 'La présidente du Judo Club Panonnais a reçu le prix de l\'engagement associatif décerné par la Mairie de Bras Panon, en reconnaissance de son travail exceptionnel pour le développement social à travers le sport.', featured: false, url: '#' },
   { title: 'Judo et persévérance scolaire : le JCP fait le lien entre tatami et classe', publication: 'imazpress', date: '5 février 2025', excerpt: 'Le Judo Club Panonnais a signé une charte sport-école avec plusieurs établissements de Bras Panon. Des ateliers de gestion du stress et de confiance en soi complètent les entraînements.', featured: false, url: '#' },
-]
-
-const PHOTOS = [
-  { src: '/media/photos/thumb-projection.jpg', alt: 'Projection — technique avancée', caption: 'Entraînement seniors — technique de projection', video: '/media/videos/jcp-projection.mp4' },
-  { src: '/media/photos/thumb-tatami.jpg', alt: 'Combat au sol — ne-waza', caption: 'Travail au sol (ne-waza) sur le tatami de Bras Panon', video: '/media/videos/jcp-tatami.mp4' },
-  { src: '/media/photos/thumb-enfants.jpg', alt: 'Cours enfants — Baby Judo', caption: 'Cours Baby Judo et Mini Poussins', video: '/media/videos/jcp-enfants.mp4' },
 ]
 
 export default function PressePage() {
@@ -30,54 +23,6 @@ export default function PressePage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
-
-        {/* GALERIE PHOTOS & VIDÉOS */}
-        <section>
-          <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">Photos & vidéos du club</h2>
-          <p className="text-gray-500 text-sm mb-6">Cliquez sur une image pour voir la vidéo complète</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PHOTOS.map((p, i) => (
-              <div key={i} className="group relative rounded-2xl overflow-hidden shadow-lg bg-black aspect-[4/5]">
-                <Image src={p.src} alt={p.alt} fill className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90" />
-                {/* Play button overlay */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform border-2 border-white/50">
-                    <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                </div>
-                {/* Caption */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                  <p className="text-white text-sm font-medium">{p.caption}</p>
-                </div>
-                {/* Video popup on click */}
-                <a href={p.video} target="_blank" rel="noopener" className="absolute inset-0" title={p.caption} />
-              </div>
-            ))}
-          </div>
-
-          {/* Vidéos inline */}
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PHOTOS.map((p, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden shadow-md bg-black">
-                <video
-                  src={p.video}
-                  poster={p.src}
-                  controls
-                  playsInline
-                  className="w-full aspect-[9/16] object-cover"
-                  preload="metadata"
-                >
-                  <source src={p.video} type="video/mp4" />
-                </video>
-                <div className="p-3 bg-gray-50">
-                  <p className="text-sm text-gray-600 font-medium">{p.caption}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         {/* Articles à la une */}
         <section>
