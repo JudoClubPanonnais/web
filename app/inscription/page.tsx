@@ -252,31 +252,75 @@ function InscriptionForm() {
   )
 }
 
+const BANK_DETAILS: { label: string; value: string }[] = [
+  { label: 'Titulaire du compte', value: 'À venir' },
+  { label: 'IBAN', value: 'À venir' },
+  { label: 'BIC', value: 'À venir' },
+  { label: 'Référence à indiquer', value: 'NOM Prénom — Adhésion 2026-2027' },
+]
+
+function CopyField({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false)
+  function copy() {
+    navigator.clipboard?.writeText(value)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+  return (
+    <div className="flex items-center justify-between gap-3 py-3 border-b border-white/10 last:border-b-0">
+      <div>
+        <div className="text-white/50 text-xs uppercase tracking-wide">{label}</div>
+        <div className="font-mono text-white font-medium">{value}</div>
+      </div>
+      <button type="button" onClick={copy}
+        className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-medium transition-colors">
+        {copied ? '✓ Copié' : 'Copier'}
+      </button>
+    </div>
+  )
+}
+
 function PaymentChoice() {
   const [mode, setMode] = useState<'none' | 'card' | 'transfer'>('none')
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">Adhésion 2026–2027 — Paiement</h2>
-      <p className="text-gray-500 text-sm mb-6">Choisissez votre mode de paiement. Vous recevrez une confirmation par email.</p>
+      <p className="text-gray-500 text-sm mb-8">Choisissez votre mode de paiement. Vous recevrez une confirmation par email.</p>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 gap-5">
         <button type="button" onClick={() => { setMode('card'); window.open(HA_ADHESION_URL, '_blank') }}
-          className={`p-5 rounded-xl border-2 text-left transition-colors ${mode === 'card' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
-          <div className="font-bold text-[#1e3a5f] mb-1">💳 Payer par carte via HelloAsso</div>
-          <div className="text-sm text-gray-500">Paiement en ligne sécurisé, reçu automatique par email.</div>
+          className={`group relative text-left p-6 rounded-2xl border-2 transition-all ${mode === 'card' ? 'border-orange-500 bg-orange-50 shadow-lg shadow-orange-100' : 'border-gray-200 bg-white hover:border-orange-300 hover:shadow-md'}`}>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-2xl mb-4 shadow-sm">💳</div>
+          <div className="font-bold text-[#1e3a5f] text-lg mb-1">Carte bancaire</div>
+          <div className="text-sm text-gray-500 mb-3">Paiement en ligne sécurisé via HelloAsso, reçu immédiat par email.</div>
+          <div className="inline-flex items-center gap-1 text-sm font-semibold text-orange-600 group-hover:gap-2 transition-all">
+            Payer maintenant <span aria-hidden>→</span>
+          </div>
         </button>
         <button type="button" onClick={() => setMode('transfer')}
-          className={`p-5 rounded-xl border-2 text-left transition-colors ${mode === 'transfer' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
-          <div className="font-bold text-[#1e3a5f] mb-1">🏦 Payer par virement</div>
-          <div className="text-sm text-gray-500">Afficher les coordonnées bancaires du club.</div>
+          className={`group relative text-left p-6 rounded-2xl border-2 transition-all ${mode === 'transfer' ? 'border-[#1e3a5f] bg-blue-50 shadow-lg shadow-blue-100' : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'}`}>
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1e3a5f] to-[#0f1f33] flex items-center justify-center text-2xl mb-4 shadow-sm">🏦</div>
+          <div className="font-bold text-[#1e3a5f] text-lg mb-1">Virement bancaire</div>
+          <div className="text-sm text-gray-500 mb-3">Afficher les coordonnées bancaires du club pour effectuer un virement.</div>
+          <div className="inline-flex items-center gap-1 text-sm font-semibold text-[#1e3a5f] group-hover:gap-2 transition-all">
+            Voir les coordonnées <span aria-hidden>→</span>
+          </div>
         </button>
       </div>
 
       {mode === 'transfer' && (
-        <div className="mt-6 p-5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-900">
-          <p className="font-semibold mb-2">Coordonnées bancaires à venir</p>
-          <p>Le RIB/IBAN du club sera affiché ici. En attendant, contactez-nous à <a href="mailto:contact@judoclubpanonnais.fr" className="underline">contact@judoclubpanonnais.fr</a> pour recevoir les coordonnées de virement.</p>
+        <div className="mt-6 rounded-2xl overflow-hidden shadow-lg">
+          <div className="bg-gradient-to-br from-[#1e3a5f] to-[#0f1f33] p-6">
+            <div className="flex items-center gap-2 text-white/70 text-xs uppercase tracking-wide font-semibold mb-1">Coordonnées bancaires</div>
+            <div className="text-white font-bold text-lg mb-4">Judo Club Panonnais</div>
+            <div>
+              {BANK_DETAILS.map(f => <CopyField key={f.label} label={f.label} value={f.value} />)}
+            </div>
+          </div>
+          <div className="bg-amber-50 border-t border-amber-200 p-4 text-sm text-amber-800">
+            Les coordonnées définitives (IBAN/BIC) seront ajoutées prochainement. En attendant, contactez-nous à <a href="mailto:contact@judoclubpanonnais.fr" className="underline font-medium">contact@judoclubpanonnais.fr</a> pour recevoir le RIB du club.
+          </div>
         </div>
       )}
     </div>
