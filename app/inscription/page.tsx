@@ -22,20 +22,7 @@ const COURSES: CourseOption[] = [
   { label: 'Autodéfense Femmes — Gratuit', type: 'gratuit', price: 0 },
 ]
 
-function HelloAssoResizeScript() {
-  useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      const dataHeight = (e.data as { height?: number })?.height
-      const el = document.getElementById('haWidgetAdhesion')
-      if (el && dataHeight && dataHeight > parseFloat(el.style.height || '0')) {
-        el.style.height = dataHeight + 'px'
-      }
-    }
-    window.addEventListener('message', handler)
-    return () => window.removeEventListener('message', handler)
-  }, [])
-  return null
-}
+const HA_ADHESION_URL = 'https://www.helloasso.com/associations/judo-club-panonnais/adhesions/adhesion-2026-2027-sport'
 
 function InscriptionForm() {
   const params = useSearchParams()
@@ -265,30 +252,50 @@ function InscriptionForm() {
   )
 }
 
+function PaymentChoice() {
+  const [mode, setMode] = useState<'none' | 'card' | 'transfer'>('none')
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">Adhésion 2026–2027 — Paiement</h2>
+      <p className="text-gray-500 text-sm mb-6">Choisissez votre mode de paiement. Vous recevrez une confirmation par email.</p>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <button type="button" onClick={() => { setMode('card'); window.open(HA_ADHESION_URL, '_blank') }}
+          className={`p-5 rounded-xl border-2 text-left transition-colors ${mode === 'card' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
+          <div className="font-bold text-[#1e3a5f] mb-1">💳 Payer par carte via HelloAsso</div>
+          <div className="text-sm text-gray-500">Paiement en ligne sécurisé, reçu automatique par email.</div>
+        </button>
+        <button type="button" onClick={() => setMode('transfer')}
+          className={`p-5 rounded-xl border-2 text-left transition-colors ${mode === 'transfer' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
+          <div className="font-bold text-[#1e3a5f] mb-1">🏦 Payer par virement</div>
+          <div className="text-sm text-gray-500">Afficher les coordonnées bancaires du club.</div>
+        </button>
+      </div>
+
+      {mode === 'transfer' && (
+        <div className="mt-6 p-5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-900">
+          <p className="font-semibold mb-2">Coordonnées bancaires à venir</p>
+          <p>Le RIB/IBAN du club sera affiché ici. En attendant, contactez-nous à <a href="mailto:contact@judoclubpanonnais.fr" className="underline">contact@judoclubpanonnais.fr</a> pour recevoir les coordonnées de virement.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function InscriptionPage() {
   return (
     <>
       <section className="bg-gradient-to-br from-[#1e3a5f] to-[#0f1f33] text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl md:text-4xl font-black mb-4">Inscription aux cours</h1>
-          <p className="text-gray-300">Rejoignez le Judo Club Panonnais pour la saison 2026–2027. Payez votre adhésion directement en ligne via HelloAsso.</p>
+          <p className="text-gray-300">Rejoignez le Judo Club Panonnais pour la saison 2026–2027. Payez votre adhésion en ligne ou par virement.</p>
         </div>
       </section>
 
-      {/* Widget HelloAsso Adhésion */}
+      {/* Choix du paiement */}
       <section className="bg-white py-10 border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">Adhésion 2026–2027 — Paiement en ligne</h2>
-          <p className="text-gray-500 text-sm mb-6">Réglez votre adhésion directement ci-dessous. Vous recevrez un reçu par email automatiquement.</p>
-          <HelloAssoResizeScript />
-          <iframe
-            id="haWidgetAdhesion"
-            allowTransparency={true}
-            scrolling="auto"
-            src="https://www.helloasso.com/associations/judo-club-panonnais/adhesions/adhesion-2026-2027-sport/widget"
-            style={{ width: '100%', height: '750px', border: 'none' }}
-          />
-        </div>
+        <PaymentChoice />
       </section>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
