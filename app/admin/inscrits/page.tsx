@@ -90,6 +90,9 @@ export default function AdminInscrits() {
   const [emailResult, setEmailResult] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [invoiceGenerating, setInvoiceGenerating] = useState(false)
+  const [invoiceSending, setInvoiceSending] = useState(false)
+  const [invoiceResult, setInvoiceResult] = useState('')
 
   function loadList() {
     fetch('/api/admin/registrations').then(r => r.json()).then(d => {
@@ -116,7 +119,45 @@ export default function AdminInscrits() {
     setShowEmailModal(false)
     setEmailResult('')
     setConfirmDelete(false)
+    setInvoiceResult('')
     if (!isCoach) loadPayHistory(i.id)
+  }
+
+  async function handleGenerateInvoice() {
+    if (!selected) return
+    setInvoiceGenerating(true)
+    setInvoiceResult('')
+    try {
+      const r = await fetch('/api/admin/invoices', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registration_id: selected.id }),
+      })
+      const d = await r.json()
+      if (r.ok && d.invoice_id) window.open(`/facture/${d.invoice_id}`, '_blank')
+      else setInvoiceResult(d.error || 'Erreur lors de la génération.')
+    } catch { setInvoiceResult('Erreur réseau.') }
+    setInvoiceGenerating(false)
+  }
+
+  async function handleSendInvoice() {
+    if (!selected) return
+    setInvoiceSending(true)
+    setInvoiceResult('')
+    try {
+      const genRes = await fetch('/api/admin/invoices', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ registration_id: selected.id }),
+      })
+      const genData = await genRes.json()
+      if (!genRes.ok || !genData.invoice_id) { setInvoiceResult(genData.error || 'Erreur.'); setInvoiceSending(false); return }
+      const sendRes = await fetch('/api/admin/invoices/send', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invoice_id: genData.invoice_id }),
+      })
+      const sendData = await sendRes.json()
+      setInvoiceResult(sendData.ok ? `Facture envoyée à ${sendData.email}.` : (sendData.message || 'Échec de l\'envoi.'))
+    } catch { setInvoiceResult('Erreur réseau.') }
+    setInvoiceSending(false)
   }
 
   const filtered = list.filter(i => {
@@ -428,7 +469,14 @@ export default function AdminInscrits() {
                   <button onClick={() => { setShowEmailModal(true); setEmailResult('') }} className="px-3 py-2 text-xs bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 font-medium transition-colors">
                     Envoyer demande de paiement
                   </button>
+                  <button onClick={handleGenerateInvoice} disabled={invoiceGenerating} className="px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 font-medium transition-colors disabled:opacity-50">
+                    {invoiceGenerating ? 'Génération...' : 'Générer la facture'}
+                  </button>
+                  <button onClick={handleSendInvoice} disabled={invoiceSending} className="px-3 py-2 text-xs bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 font-medium transition-colors disabled:opacity-50">
+                    {invoiceSending ? 'Envoi...' : 'Envoyer la facture par email'}
+                  </button>
                 </div>
+                {invoiceResult && <p className="text-xs text-gray-600 font-medium">{invoiceResult}</p>}
 
                 {/* Mini form paiement */}
                 {showPayForm && (

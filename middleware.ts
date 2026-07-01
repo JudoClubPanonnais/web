@@ -12,7 +12,7 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Pages et ressources toujours accessibles
-  const publicPaths = ['/acces-prive', '/_next', '/api/', '/logo-jcp.jpg', '/media/', '/favicon']
+  const publicPaths = ['/acces-prive', '/_next', '/api/', '/logo-jcp.jpg', '/media/', '/favicon', '/facture/']
   if (publicPaths.some(p => pathname.startsWith(p))) return NextResponse.next()
 
   // Vérifier le cookie de session
