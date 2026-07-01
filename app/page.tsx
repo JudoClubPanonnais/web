@@ -4,36 +4,51 @@ import Link from 'next/link'
 import Image from 'next/image'
 
 const CAUSES = [
-{ slug: 'lutte-delinquance', name: 'Lutte contre la délinquance', icon: '🚨', goal: 3500, raised: 0, color: 'from-red-500 to-red-700', desc: 'Offrir aux jeunes en rupture une alternative structurante via le judo.' },
-{ slug: 'perseverance-scolaire', name: 'Persévérance scolaire', icon: '📚', goal: 2800, raised: 0, color: 'from-blue-500 to-blue-700', desc: 'Le judo apprend à tomber et se relever. Cette résilience se transfère en classe.' },
-{ slug: 'inclusion-autisme', name: 'Inclusion autisme & sport', icon: '🤝', goal: 4200, raised: 0, color: 'from-purple-500 to-purple-700', desc: 'Le tatami offre un cadre prévisible et un sentiment de compétence réel.' },
-{ slug: 'violences-femmes', name: 'Violences faites aux femmes', icon: '💜', goal: 3000, raised: 0, color: 'from-pink-500 to-pink-700', desc: "L'autodéfense est un droit. Reprendre le contrôle de son corps." },
-{ slug: 'decouverte-ailleurs', name: "Découverte de l'ailleurs", icon: '✈️', goal: 5000, raised: 0, color: 'from-emerald-500 to-emerald-700', desc: "Le judo est une langue universelle. Partout où on pose un tatami, on se comprend." },
+{ slug: 'lutte-delinquance', name: 'Lutte contre la délinquance', icon: '🚨', votes: 0, color: 'from-red-500 to-red-700', desc: 'Offrir aux jeunes en rupture une alternative structurante via le judo.' },
+{ slug: 'perseverance-scolaire', name: 'Persévérance scolaire', icon: '📚', votes: 0, color: 'from-blue-500 to-blue-700', desc: 'Le judo apprend à tomber et se relever. Cette résilience se transfère en classe.' },
+{ slug: 'inclusion-autisme', name: 'Inclusion autisme & sport', icon: '🤝', votes: 0, color: 'from-purple-500 to-purple-700', desc: 'Le tatami offre un cadre prévisible et un sentiment de compétence réel.' },
+{ slug: 'violences-femmes', name: 'Violences faites aux femmes', icon: '💜', votes: 0, color: 'from-pink-500 to-pink-700', desc: "L'autodéfense est un droit. Reprendre le contrôle de son corps." },
+{ slug: 'decouverte-ailleurs', name: "Découverte de l'ailleurs", icon: '✈️', votes: 0, color: 'from-emerald-500 to-emerald-700', desc: "Le judo est une langue universelle. Partout où on pose un tatami, on se comprend." },
 ]
 
 const DON_AMOUNTS = [5, 10, 25, 50, 100, 250]
 
 const HA_DON_URL = 'https://www.helloasso.com/associations/judo-club-panonnais/formulaires/1'
 
+const VOTE_STORAGE_KEY = 'jcp_voted_cause'
+
 export default function HomePage() {
-const [causes, setCauses] = useState(CAUSES)
 const [sorted, setSorted] = useState(CAUSES)
+const [votedSlug, setVotedSlug] = useState<string | null>(null)
 const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
 const [customAmount, setCustomAmount] = useState('')
 const [addOneDonation, setAddOneDonation] = useState(false)
 
 useEffect(() => {
+setVotedSlug(localStorage.getItem(VOTE_STORAGE_KEY))
 fetch('/api/causes').then(r => r.json()).then(d => {
 if (d.causes) {
 const m = CAUSES.map(c => {
-const x = d.causes.find((i: { slug: string; collected_amount: number }) => i.slug === c.slug)
-return x ? { ...c, raised: Math.round(x.collected_amount / 100) } : c
+const x = d.causes.find((i: { slug: string; votes: number }) => i.slug === c.slug)
+return x ? { ...c, votes: x.votes || 0 } : c
 })
-setCauses(m)
-setSorted([...m].sort((a, b) => b.raised - a.raised))
+setSorted([...m].sort((a, b) => b.votes - a.votes))
 }
 }).catch(() => {})
 }, [])
+
+async function vote(slug: string) {
+if (votedSlug) return
+setVotedSlug(slug)
+localStorage.setItem(VOTE_STORAGE_KEY, slug)
+try {
+const res = await fetch('/api/causes/vote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug }) })
+if (res.ok) {
+const { votes } = await res.json()
+setSorted(s => [...s.map(c => c.slug === slug ? { ...c, votes } : c)].sort((a, b) => b.votes - a.votes))
+}
+} catch {}
+}
 
 const effectiveAmount = customAmount ? parseInt(customAmount) || 0 : selectedAmount || 0
 const eff = effectiveAmount
@@ -91,45 +106,59 @@ Soutenez notre projet pédagogique 2026 et transformez des vies.
 <section className="bg-orange-500 py-6">
 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-white text-center">
-{[['Affilié FFJDA','Fédération Française de Judo'],['Bras Panon','Est de La Réunion'],['Loi 1901','Association officielle'],['100%','Reversé aux projets']].map(([t,s]) => (
+{[['Affilié FFJDA','Fédération Française de Judo'],['Bras Panon','Est de La Réunion'],['Association','loi 1901'],['100%','Reversé aux projets']].map(([t,s]) => (
 <div key={t}><div className="font-bold">{t}</div><div className="text-orange-100 text-xs">{s}</div></div>
 ))}
 </div>
 </div>
 </section>
 
-{/* CLASSEMENT CAUSES */}
+{/* VOTE CAUSES */}
 <section id="causes" className="py-20 bg-gray-50">
 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 <div className="text-center mb-12">
-<h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Classement en direct des causes</h2>
-<p className="text-gray-500 max-w-xl mx-auto">Chaque don est fléché vers la cause choisie. Classement mis à jour en temps réel.</p>
+<h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Votez pour votre cause préférée</h2>
+<p className="text-gray-500 max-w-xl mx-auto">Un vote par visiteur. Le classement ci-dessous évolue en temps réel selon vos votes.</p>
 </div>
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-{sorted.map((c, idx) => {
-const pct = Math.min(100, c.goal > 0 ? Math.round((c.raised / c.goal) * 100) : 0)
+{(() => {
+const totalVotes = sorted.reduce((s, c) => s + c.votes, 0)
+return sorted.map((c, idx) => {
+const pct = totalVotes > 0 ? Math.round((c.votes / totalVotes) * 100) : 0
 return (
-<Link href={`/causes/${c.slug}`} key={c.slug} className="card p-6 hover:-translate-y-1 transition-all duration-300 group">
+<div key={c.slug} className="card p-6 hover:-translate-y-1 transition-all duration-300 group">
+<Link href={`/causes/${c.slug}`} className="block">
 <div className="flex items-start justify-between mb-4">
 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${c.color} flex items-center justify-center text-2xl`}>{c.icon}</div>
 <span className="text-3xl font-black text-gray-100 group-hover:text-gray-200">#{idx+1}</span>
 </div>
 <h3 className="font-bold text-gray-900 mb-2 text-lg group-hover:text-orange-500 transition-colors">{c.name}</h3>
 <p className="text-gray-500 text-sm mb-4 line-clamp-2">{c.desc}</p>
-<div className="space-y-2">
+</Link>
+<div className="space-y-2 mb-4">
 <div className="flex justify-between text-sm">
-<span className="font-semibold text-gray-700">{c.raised.toLocaleString('fr-FR')} € collectés</span>
+<span className="font-semibold text-gray-700">{c.votes.toLocaleString('fr-FR')} vote{c.votes > 1 ? 's' : ''}</span>
+<span className="text-gray-400">{pct}%</span>
 </div>
 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
 <div className={`h-full bg-gradient-to-r ${c.color} rounded-full`} style={{ width: `${pct}%` }} />
 </div>
 </div>
-</Link>
+<button
+type="button"
+onClick={() => vote(c.slug)}
+disabled={!!votedSlug}
+className={`w-full py-2 rounded-xl text-sm font-semibold transition-all disabled:cursor-not-allowed ${votedSlug === c.slug ? 'bg-green-100 text-green-700' : votedSlug ? 'bg-gray-100 text-gray-400' : `bg-gradient-to-r ${c.color} text-white hover:opacity-90`}`}
+>
+{votedSlug === c.slug ? '✓ Vous avez voté' : 'Voter pour cette cause'}
+</button>
+</div>
 )
-})}
+})
+})()}
 </div>
 <div className="text-center">
-<Link href="#don" className="btn-primary">Soutenir une cause →</Link>
+<Link href="#don" className="btn-primary">Soutenir nos causes →</Link>
 </div>
 </div>
 </section>
@@ -138,8 +167,8 @@ return (
 <section id="don" className="py-20 bg-white">
 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 <div className="text-center mb-10">
-<h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Faire un don</h2>
-<p className="text-gray-500">100% reversé au projet. Reçu fiscal automatique via HelloAsso.</p>
+<h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Soutenir nos causes</h2>
+<p className="text-gray-500">Votre don profite à l&apos;une de nos causes. 100% reversé au projet. Reçu fiscal automatique via HelloAsso.</p>
 </div>
 
 <form className="card p-8 space-y-6" onSubmit={donate}>
@@ -171,7 +200,7 @@ className="w-4 h-4 accent-orange-500"
 />
 <div>
 <span className="text-sm font-semibold text-orange-700">+ 1 € solidaire en plus</span>
-<p className="text-xs text-orange-600 mt-0.5">Pour amplifier l&apos;impact de votre don sur nos 5 causes</p>
+<p className="text-xs text-orange-600 mt-0.5">Pour amplifier l&apos;impact de votre don sur une de nos causes</p>
 </div>
 </label>
 
@@ -258,36 +287,6 @@ Notre dojo accueille plus de 80 pratiquants de tous âges dans une ambiance fami
 </div>
 ))}
 </div>
-</div>
-</div>
-</section>
-
-{/* GALERIE VIDÉOS */}
-<section className="py-20 bg-white">
-<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-<div className="text-center mb-10">
-<h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Le club en action</h2>
-<p className="text-gray-500">Revivez l&apos;ambiance de nos entraînements sur les tatamis de Bras Panon</p>
-</div>
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-{[
-{ src: '/media/videos/jcp-projection.mp4', poster: '/media/photos/thumb-projection.jpg', label: 'Technique de projection — Seniors' },
-{ src: '/media/videos/jcp-tatami.mp4', poster: '/media/photos/thumb-tatami.jpg', label: 'Combat au sol (ne-waza) — Entraînement' },
-{ src: '/media/videos/jcp-enfants.mp4', poster: '/media/photos/thumb-enfants.jpg', label: 'Baby Judo & Mini Poussins' },
-].map((v, i) => (
-<div key={i} className="rounded-2xl overflow-hidden shadow-lg bg-black group">
-<video src={v.src} poster={v.poster} controls playsInline preload="metadata"
-className="w-full aspect-[9/16] object-cover">
-<source src={v.src} type="video/mp4" />
-</video>
-<div className="p-4 bg-gray-50">
-<p className="text-sm font-semibold text-[#1e3a5f]">{v.label}</p>
-</div>
-</div>
-))}
-</div>
-<div className="text-center mt-8">
-<Link href="/presse" className="btn-secondary">Voir toutes les photos & vidéos →</Link>
 </div>
 </div>
 </section>

@@ -67,8 +67,8 @@ export default function Footer() {
               {[
                 ['/', 'Accueil'],
                 ['/#causes', 'Nos causes'],
-                ['/calendrier', 'Calendrier & cours'],
                 ['/inscription', 'S\'inscrire'],
+                ['/calendrier', 'Calendrier & cours'],
                 ['/presse', 'Espace presse'],
               ].map(([href, label]) => (
                 <li key={href}>

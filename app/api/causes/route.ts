@@ -13,7 +13,7 @@ export async function GET() {
   try {
     const { data, error } = await getSupabase()
       .from('causes')
-      .select('id, slug, name, collected_amount, goal_amount')
+      .select('id, slug, name, collected_amount, goal_amount, votes')
       .order('sort_order')
     if (error) throw error
     return NextResponse.json({ causes: data })

@@ -22,20 +22,7 @@ const COURSES: CourseOption[] = [
   { label: 'Autodéfense Femmes — Gratuit', type: 'gratuit', price: 0 },
 ]
 
-function HelloAssoResizeScript() {
-  useEffect(() => {
-    const handler = (e: MessageEvent) => {
-      const dataHeight = (e.data as { height?: number })?.height
-      const el = document.getElementById('haWidgetAdhesion')
-      if (el && dataHeight && dataHeight > parseFloat(el.style.height || '0')) {
-        el.style.height = dataHeight + 'px'
-      }
-    }
-    window.addEventListener('message', handler)
-    return () => window.removeEventListener('message', handler)
-  }, [])
-  return null
-}
+const HA_ADHESION_URL = 'https://www.helloasso.com/associations/judo-club-panonnais/adhesions/adhesion-2026-2027-sport'
 
 function InscriptionForm() {
   const params = useSearchParams()
@@ -137,19 +124,22 @@ function InscriptionForm() {
               <span className="text-2xl font-black text-[#1e3a5f]">{price} €</span>
             </div>
 
-            {/* Option don +1€ */}
-            <label className="flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl border-2 transition-colors border-orange-200 bg-orange-50 hover:border-orange-400">
-              <input
-                type="checkbox"
-                checked={form.addOneDonation}
-                onChange={e => set('addOneDonation', e.target.checked)}
-                className="w-4 h-4 accent-orange-500"
-              />
-              <div>
-                <span className="text-sm font-semibold text-orange-700">+ 1 € de don solidaire</span>
-                <p className="text-xs text-orange-600 mt-0.5">Un geste pour soutenir nos 5 causes sociales. Merci !</p>
-              </div>
-            </label>
+            {/* Soutenir nos causes */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 mb-2">Soutenir nos causes</h4>
+              <label className="flex items-center gap-3 cursor-pointer px-4 py-3 rounded-xl border-2 transition-colors border-orange-200 bg-orange-50 hover:border-orange-400">
+                <input
+                  type="checkbox"
+                  checked={form.addOneDonation}
+                  onChange={e => set('addOneDonation', e.target.checked)}
+                  className="w-4 h-4 accent-orange-500"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-orange-700">+ 1 € de don solidaire</span>
+                  <p className="text-xs text-orange-600 mt-0.5">Un geste pour soutenir une de nos causes. Merci !</p>
+                </div>
+              </label>
+            </div>
 
             {form.addOneDonation && (
               <div className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg">
@@ -190,6 +180,61 @@ function InscriptionForm() {
         <p className="text-xs text-gray-400 mt-2">Ces informations sont strictement confidentielles et réservées à l&apos;encadrement.</p>
       </div>
 
+      {/* Documents médicaux obligatoires */}
+      <div className="card p-6">
+        <h3 className="font-bold text-[#1e3a5f] text-lg mb-5 flex items-center gap-2">
+          <span className="w-7 h-7 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">5</span>
+          Attestation médicale ou certificat médical
+        </h3>
+
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          <a href="/documents/questionnaire-sante-ffjda.pdf" download
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-orange-200 bg-orange-50 text-orange-700 font-semibold text-sm hover:border-orange-400 transition-colors">
+            📄 Questionnaire de santé FFJDA
+          </a>
+          <a href="/documents/attestation-medicale.pdf" download
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-orange-200 bg-orange-50 text-orange-700 font-semibold text-sm hover:border-orange-400 transition-colors">
+            📄 Attestation médicale
+          </a>
+        </div>
+
+        <div className="text-sm text-gray-600 leading-relaxed space-y-3">
+          <p>Le décret n° 2021-564 du 7 mai 2021 prévoit qu&apos;il n&apos;est désormais plus nécessaire, pour les mineurs, de produire un certificat médical pour l&apos;obtention ou le renouvellement d&apos;une licence dans une fédération sportive ou pour l&apos;inscription à une compétition sportive organisée par une fédération.</p>
+          <p>Le questionnaire de santé reste cependant obligatoire : si les réponses à ce questionnaire conduisent à un examen médical, le certificat demeure obligatoire.</p>
+          <p>Toutes les modifications sont applicables depuis le 8 mai 2021 (décret du 7 mai 2021 n° 2021-564).</p>
+
+          <p className="font-semibold text-gray-700 pt-2">Pour les mineurs :</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Une attestation remplace le certificat médical. Elle doit être signée par les personnes exerçant l&apos;autorité parentale, précisant que chaque rubrique du questionnaire de santé a donné lieu à une réponse négative.</li>
+            <li>Si au moins une réponse du questionnaire est positive, un certificat médical attestant de l&apos;absence de contre-indication à la pratique du sport ou de la discipline concernée, daté de moins de six mois, devra être produit.</li>
+          </ul>
+          <p className="text-xs text-gray-400">À noter : la mention « compétition » a été supprimée — elle sera inscrite par défaut sur les licences de tous les mineurs.</p>
+
+          <p className="font-semibold text-gray-700 pt-2">Pour les majeurs :</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Dans le cas d&apos;une nouvelle licence, un certificat médical doit être fourni.</li>
+            <li>Dans le cadre d&apos;un renouvellement de licence, si la personne n&apos;est pas en mesure d&apos;attester avoir répondu « non » à toutes les rubriques du questionnaire QS-Sport, elle doit produire un certificat médical attestant de l&apos;absence de contre-indication à la pratique (y compris en compétition le cas échéant), daté de moins de 6 mois.</li>
+            <li>Si toutes les réponses sont négatives, une attestation médicale suffit.</li>
+          </ul>
+          <p>Plus d&apos;informations : <a href="https://www.ffjudo.com/actualite/licences-questionnaire-mineurs" target="_blank" rel="noopener" className="text-orange-500 hover:underline">ffjudo.com</a></p>
+
+          <p className="font-semibold text-gray-700 pt-2">Pour simplifier la gestion du club :</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Le questionnaire médical (ci-dessus), correspondant à l&apos;âge de l&apos;adhérent (mineur ou majeur, un par adhérent), doit être rempli mais n&apos;a pas à être présenté ni communiqué au club (secret médical). Il doit être conservé au sein de la sphère familiale.</li>
+            <li>L&apos;attestation médicale (ci-dessus), complétée et signée par le représentant légal, correspondant à l&apos;âge de l&apos;adhérent (un par adhérent), doit être remise au club.</li>
+            <li>Pour une personne majeure, dans le cas d&apos;une nouvelle licence, un certificat médical est demandé.</li>
+          </ul>
+
+          <p className="font-semibold text-gray-700 pt-2">Dossier d&apos;inscription complet — pièces à fournir :</p>
+          <p>Le dossier d&apos;inscription ne sera considéré comme complet qu&apos;après la remise de tous les documents suivants :</p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Le formulaire d&apos;inscription correctement complété.</li>
+            <li>La ou les attestation(s) médicale(s) datée(s) et signée(s), ou le certificat médical.</li>
+            <li>Les paiements (immédiats ou différés si plusieurs chèques).</li>
+          </ul>
+        </div>
+      </div>
+
       {/* CGU */}
       <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-xl">
         <input type="checkbox" id="cgu" required checked={form.acceptCgu} onChange={e => set('acceptCgu', e.target.checked)} className="w-4 h-4 accent-orange-500 mt-0.5" />
@@ -207,30 +252,50 @@ function InscriptionForm() {
   )
 }
 
+function PaymentChoice() {
+  const [mode, setMode] = useState<'none' | 'card' | 'transfer'>('none')
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">Adhésion 2026–2027 — Paiement</h2>
+      <p className="text-gray-500 text-sm mb-6">Choisissez votre mode de paiement. Vous recevrez une confirmation par email.</p>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <button type="button" onClick={() => { setMode('card'); window.open(HA_ADHESION_URL, '_blank') }}
+          className={`p-5 rounded-xl border-2 text-left transition-colors ${mode === 'card' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
+          <div className="font-bold text-[#1e3a5f] mb-1">💳 Payer par carte via HelloAsso</div>
+          <div className="text-sm text-gray-500">Paiement en ligne sécurisé, reçu automatique par email.</div>
+        </button>
+        <button type="button" onClick={() => setMode('transfer')}
+          className={`p-5 rounded-xl border-2 text-left transition-colors ${mode === 'transfer' ? 'border-orange-500 bg-orange-50' : 'border-gray-200 hover:border-orange-300'}`}>
+          <div className="font-bold text-[#1e3a5f] mb-1">🏦 Payer par virement</div>
+          <div className="text-sm text-gray-500">Afficher les coordonnées bancaires du club.</div>
+        </button>
+      </div>
+
+      {mode === 'transfer' && (
+        <div className="mt-6 p-5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-900">
+          <p className="font-semibold mb-2">Coordonnées bancaires à venir</p>
+          <p>Le RIB/IBAN du club sera affiché ici. En attendant, contactez-nous à <a href="mailto:contact@judoclubpanonnais.fr" className="underline">contact@judoclubpanonnais.fr</a> pour recevoir les coordonnées de virement.</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function InscriptionPage() {
   return (
     <>
       <section className="bg-gradient-to-br from-[#1e3a5f] to-[#0f1f33] text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl md:text-4xl font-black mb-4">Inscription aux cours</h1>
-          <p className="text-gray-300">Rejoignez le Judo Club Panonnais pour la saison 2026–2027. Payez votre adhésion directement en ligne via HelloAsso.</p>
+          <p className="text-gray-300">Rejoignez le Judo Club Panonnais pour la saison 2026–2027. Payez votre adhésion en ligne ou par virement.</p>
         </div>
       </section>
 
-      {/* Widget HelloAsso Adhésion */}
+      {/* Choix du paiement */}
       <section className="bg-white py-10 border-b">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-black text-[#1e3a5f] mb-2">Adhésion 2026–2027 — Paiement en ligne</h2>
-          <p className="text-gray-500 text-sm mb-6">Réglez votre adhésion directement ci-dessous. Vous recevrez un reçu par email automatiquement.</p>
-          <HelloAssoResizeScript />
-          <iframe
-            id="haWidgetAdhesion"
-            allowTransparency={true}
-            scrolling="auto"
-            src="https://www.helloasso.com/associations/judo-club-panonnais/adhesions/adhesion-2026-2027-sport/widget"
-            style={{ width: '100%', height: '750px', border: 'none' }}
-          />
-        </div>
+        <PaymentChoice />
       </section>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

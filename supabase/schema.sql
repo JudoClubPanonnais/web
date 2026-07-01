@@ -12,10 +12,14 @@ create table if not exists causes (
   icon text,
   goal_amount integer default 0,
   collected_amount integer default 0,
+  votes integer default 0,
   color text default '#1e3a5f',
   sort_order integer default 0,
   created_at timestamp default now()
 );
+
+-- Migration pour une base existante (déjà créée avant l'ajout du système de votes) :
+-- alter table causes add column if not exists votes integer default 0;
 
 -- Dons
 create table if not exists donations (
