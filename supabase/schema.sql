@@ -215,3 +215,14 @@ create table if not exists payment_history (
   note text,
   created_at timestamp default now()
 );
+
+-- Factures
+create table if not exists invoices (
+  id uuid primary key default gen_random_uuid(),
+  registration_id uuid references course_registrations(id) on delete cascade,
+  invoice_number integer not null unique,
+  amount integer not null,
+  payment_method text,
+  issued_at timestamp default now(),
+  sent_at timestamp
+);
