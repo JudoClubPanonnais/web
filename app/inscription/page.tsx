@@ -64,6 +64,7 @@ function InscriptionForm() {
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [paidVia, setPaidVia] = useState<'card' | 'transfer' | null>(null)
+  const [errorDetail, setErrorDetail] = useState('')
 
   function set(k: string, v: string | boolean | number) { setForm(f => ({ ...f, [k]: v })) }
 
@@ -77,6 +78,7 @@ function InscriptionForm() {
     if (!form.acceptCgu) return
     setStatus('loading')
     setPaidVia(paymentMethod)
+    setErrorDetail('')
     try {
       const payload = {
         ...form,
@@ -91,8 +93,12 @@ function InscriptionForm() {
       if (res.ok) {
         setStatus('success')
         if (paymentMethod === 'card') window.open(HA_ADHESION_URL, '_blank')
-      } else setStatus('error')
-    } catch { setStatus('error') }
+      } else {
+        const d = await res.json().catch(() => null)
+        setErrorDetail(d?.error || d?.detail || '')
+        setStatus('error')
+      }
+    } catch (e) { setErrorDetail(String(e)); setStatus('error') }
   }
 
   if (status === 'success') return (
@@ -318,7 +324,12 @@ function InscriptionForm() {
           {status === 'loading' ? 'Envoi en cours...' : 'Envoyer mon inscription'}
         </button>
       )}
-      {status === 'error' && <p className="text-red-500 text-sm text-center">Une erreur est survenue. Réessayez ou contactez-nous.</p>}
+      {status === 'error' && (
+        <p className="text-red-500 text-sm text-center">
+          Une erreur est survenue. Réessayez ou contactez-nous.
+          {errorDetail && <span className="block text-xs text-red-400 mt-1">({errorDetail})</span>}
+        </p>
+      )}
     </form>
   )
 }
