@@ -19,11 +19,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Trouver le cours correspondant
-    const { data: courseData } = await getSupabase().from('courses').select('id').ilike('name', `%${course.split('(')[0].trim()}%`).limit(1).single()
+    const { data: courseData } = await getSupabase().from('courses').select('id').ilike('name', `%${course.split('(')[0].trim()}%`).limit(1).maybeSingle()
 
     const { course_type, price, payment_installments, payment_method } = body
 
-    const { error } = await getSupabase().from('course_registrations').insert({
+    const insertData = {
       course_id: courseData?.id || null,
       first_name: firstName,
       last_name: lastName,
@@ -39,11 +39,17 @@ export async function POST(req: NextRequest) {
       price: typeof price === 'number' ? price : 0,
       payment_installments: typeof payment_installments === 'number' ? payment_installments : 1,
       payment_method: payment_method || null,
-    })
+    }
 
-    if (error) throw error
+    const { error } = await getSupabase().from('course_registrations').insert(insertData)
+
+    if (error) {
+      console.error('[POST /api/courses/register] supabase error:', error)
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 })
+    }
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  } catch (e) {
+    console.error('[POST /api/courses/register] catch:', e)
+    return NextResponse.json({ error: 'Erreur serveur', detail: String(e) }, { status: 500 })
   }
 }

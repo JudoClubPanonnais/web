@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const reg = Array.isArray(invoice.course_registrations) ? (invoice.course_registrations as any[])[0] : invoice.course_registrations as any
-    const invoiceUrl = `${process.env.NEXT_PUBLIC_SITE_URL || ''}/admin/facture/${invoice.id}`
+    const invoiceUrl = `${process.env.NEXT_PUBLIC_APP_URL || ''}/facture/${invoice.id}`
 
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json({
