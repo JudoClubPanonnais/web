@@ -5,10 +5,9 @@ import Image from 'next/image'
 
 const CAUSES = [
 { slug: 'lutte-delinquance', name: 'Lutte contre la délinquance', icon: '🚨', votes: 0, color: 'from-red-500 to-red-700', desc: 'Offrir aux jeunes en rupture une alternative structurante via le judo.' },
-{ slug: 'perseverance-scolaire', name: 'Persévérance scolaire', icon: '📚', votes: 0, color: 'from-blue-500 to-blue-700', desc: 'Le judo apprend à tomber et se relever. Cette résilience se transfère en classe.' },
 { slug: 'inclusion-autisme', name: 'Inclusion autisme & sport', icon: '🤝', votes: 0, color: 'from-purple-500 to-purple-700', desc: 'Le tatami offre un cadre prévisible et un sentiment de compétence réel.' },
 { slug: 'violences-femmes', name: 'Violences faites aux femmes', icon: '💜', votes: 0, color: 'from-pink-500 to-pink-700', desc: "L'autodéfense est un droit. Reprendre le contrôle de son corps." },
-{ slug: 'decouverte-ailleurs', name: "Découverte de l'ailleurs", icon: '✈️', votes: 0, color: 'from-emerald-500 to-emerald-700', desc: "Le judo est une langue universelle. Partout où on pose un tatami, on se comprend." },
+{ slug: 'decouverte-ailleurs', name: "Soutien à l'ambition et échanges sportifs", icon: '✈️', votes: 0, color: 'from-emerald-500 to-emerald-700', desc: "Voyages, échanges et compétitions pour porter loin l'ambition de nos judokas." },
 ]
 
 const DON_AMOUNTS = [5, 10, 25, 50, 100, 250]
@@ -20,6 +19,7 @@ const VOTE_STORAGE_KEY = 'jcp_voted_cause'
 export default function HomePage() {
 const [sorted, setSorted] = useState(CAUSES)
 const [votedSlug, setVotedSlug] = useState<string | null>(null)
+const [voteError, setVoteError] = useState('')
 const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
 const [customAmount, setCustomAmount] = useState('')
 const [addOneDonation, setAddOneDonation] = useState(false)
@@ -39,15 +39,18 @@ setSorted([...m].sort((a, b) => b.votes - a.votes))
 
 async function vote(slug: string) {
 if (votedSlug) return
-setVotedSlug(slug)
-localStorage.setItem(VOTE_STORAGE_KEY, slug)
+setVoteError('')
 try {
 const res = await fetch('/api/causes/vote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug }) })
-if (res.ok) {
-const { votes } = await res.json()
-setSorted(s => [...s.map(c => c.slug === slug ? { ...c, votes } : c)].sort((a, b) => b.votes - a.votes))
+const d = await res.json().catch(() => null)
+if (res.ok && typeof d?.votes === 'number') {
+setVotedSlug(slug)
+localStorage.setItem(VOTE_STORAGE_KEY, slug)
+setSorted(s => [...s.map(c => c.slug === slug ? { ...c, votes: d.votes } : c)].sort((a, b) => b.votes - a.votes))
+} else {
+setVoteError(d?.error || 'Le vote n\'a pas pu être enregistré. Réessayez.')
 }
-} catch {}
+} catch (e) { setVoteError(`Erreur réseau : ${String(e)}`) }
 }
 
 const effectiveAmount = customAmount ? parseInt(customAmount) || 0 : selectedAmount || 0
@@ -79,15 +82,15 @@ Bras Panon — Île de La Réunion
 Le tatami comme<br /><span className="text-orange-400">levier de<br />changement</span>
 </h1>
 <p className="text-lg text-gray-300 mb-8 leading-relaxed max-w-lg">
-Le Judo Club Panonnais porte 5 causes sociales essentielles.
+Le Judo Club Panonnais porte 4 causes sociales essentielles.
 Soutenez notre projet pédagogique 2026 et transformez des vies.
 </p>
 <div className="flex flex-wrap gap-4">
 <Link href="#don" className="btn-primary text-base py-3.5 px-7">Faire un don</Link>
-<Link href="#causes" className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-white/30 text-white hover:bg-white/10 font-semibold rounded-xl transition-all text-base">Nos 5 causes →</Link>
+<Link href="#causes" className="inline-flex items-center gap-2 px-7 py-3.5 border-2 border-white/30 text-white hover:bg-white/10 font-semibold rounded-xl transition-all text-base">Nos causes →</Link>
 </div>
 <div className="flex gap-8 mt-10">
-{[['80+','Pratiquants'],['5','Causes'],['2017','Création']].map(([v,l]) => (
+{[['80+','Pratiquants'],['4','Causes'],['2017','Création']].map(([v,l]) => (
 <div key={l}><div className="text-3xl font-black text-orange-400">{v}</div><div className="text-gray-400 text-sm">{l}</div></div>
 ))}
 </div>
@@ -126,15 +129,13 @@ const totalVotes = sorted.reduce((s, c) => s + c.votes, 0)
 return sorted.map((c, idx) => {
 const pct = totalVotes > 0 ? Math.round((c.votes / totalVotes) * 100) : 0
 return (
-<div key={c.slug} className="card p-6 hover:-translate-y-1 transition-all duration-300 group">
-<Link href={`/causes/${c.slug}`} className="block">
+<div key={c.slug} className="card p-6 transition-all duration-300 group">
 <div className="flex items-start justify-between mb-4">
 <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${c.color} flex items-center justify-center text-2xl`}>{c.icon}</div>
-<span className="text-3xl font-black text-gray-100 group-hover:text-gray-200">#{idx+1}</span>
+<span className="text-3xl font-black text-gray-100">#{idx+1}</span>
 </div>
-<h3 className="font-bold text-gray-900 mb-2 text-lg group-hover:text-orange-500 transition-colors">{c.name}</h3>
+<h3 className="font-bold text-gray-900 mb-2 text-lg">{c.name}</h3>
 <p className="text-gray-500 text-sm mb-4 line-clamp-2">{c.desc}</p>
-</Link>
 <div className="space-y-2 mb-4">
 <div className="flex justify-between text-sm">
 <span className="font-semibold text-gray-700">{c.votes.toLocaleString('fr-FR')} vote{c.votes > 1 ? 's' : ''}</span>
@@ -157,6 +158,7 @@ className={`w-full py-2 rounded-xl text-sm font-semibold transition-all disabled
 })
 })()}
 </div>
+{voteError && <p className="text-center text-red-500 text-sm mb-6">{voteError}</p>}
 <div className="text-center">
 <Link href="#don" className="btn-primary">Soutenir nos causes →</Link>
 </div>
@@ -168,7 +170,7 @@ className={`w-full py-2 rounded-xl text-sm font-semibold transition-all disabled
 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
 <div className="text-center mb-10">
 <h2 className="text-3xl md:text-4xl font-black text-[#1e3a5f] mb-4">Soutenir nos causes</h2>
-<p className="text-gray-500">Votre don profite à l&apos;une de nos causes. 100% reversé au projet. Reçu fiscal automatique via HelloAsso.</p>
+<p className="text-gray-500">Votre don profite à l&apos;une de nos causes. 100% reversé au projet.</p>
 </div>
 
 <form className="card p-8 space-y-6" onSubmit={donate}>
@@ -211,12 +213,6 @@ className="w-4 h-4 accent-orange-500"
 </div>
 )}
 
-{effectiveAmount >= 10 && (
-<p className="text-xs text-blue-600">
-Avantage fiscal estimé : <strong>{Math.round(totalAmount * 0.66)} € remboursés</strong> (66% pour les particuliers)
-</p>
-)}
-
 {/* Bouton ouvrir HelloAsso */}
 <button
 type="submit"
@@ -229,37 +225,10 @@ className="btn-primary w-full py-4 text-base disabled:opacity-50 disabled:cursor
 </button>
 
 <div className="grid grid-cols-2 gap-3 text-xs text-gray-400 pt-2 border-t border-gray-100">
-<div className="flex items-center gap-1.5">✅ Reçu fiscal automatique</div>
 <div className="flex items-center gap-1.5">💸 100% reversé au projet</div>
 <div className="flex items-center gap-1.5">🔒 Paiement sécurisé HelloAsso</div>
-<div className="flex items-center gap-1.5">📊 66% déductible (particuliers)</div>
 </div>
 </form>
-</div>
-</section>
-
-{/* DÉFISCALISATION */}
-<section className="py-16 bg-[#1e3a5f] text-white">
-<div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-<div className="grid md:grid-cols-2 gap-10 items-center">
-<div>
-<h2 className="text-2xl md:text-3xl font-bold mb-4">Défiscalisez votre don</h2>
-<p className="text-gray-300 mb-6">Association d&apos;intérêt général — vos dons ouvrent droit à des avantages fiscaux importants.</p>
-<div className="space-y-4">
-{[['Particuliers',"66% du don déductible de l'impôt sur le revenu"],['Entreprises (mécénat)',"60% du don déductible de l'IS (art. 238 bis CGI)"]].map(([t,d]) => (
-<div key={t} className="flex items-start gap-3 bg-white/10 rounded-xl p-4">
-<div><div className="font-semibold">{t}</div><div className="text-gray-300 text-sm">{d}</div></div>
-</div>
-))}
-</div>
-</div>
-<div className="text-center">
-<div className="bg-white/10 rounded-2xl p-8">
-<div className="text-gray-300 mb-2 text-sm uppercase tracking-wide">Reçu fiscal automatique</div>
-<div className="text-gray-300 text-sm">Un reçu vous est envoyé par email après chaque don pour votre déclaration d&apos;impôts.</div>
-</div>
-</div>
-</div>
 </div>
 </section>
 

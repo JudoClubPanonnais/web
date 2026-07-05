@@ -17,14 +17,22 @@ export async function POST(req: Request) {
     const supabase = getSupabase()
     const { data: cause, error: fetchError } = await supabase
       .from('causes').select('id, votes').eq('slug', slug).single()
-    if (fetchError || !cause) return NextResponse.json({ error: 'Cause introuvable' }, { status: 404 })
+    if (fetchError) {
+      console.error('[POST /api/causes/vote] fetch error:', fetchError)
+      return NextResponse.json({ error: fetchError.message, code: fetchError.code }, { status: 500 })
+    }
+    if (!cause) return NextResponse.json({ error: 'Cause introuvable' }, { status: 404 })
 
     const votes = (cause.votes || 0) + 1
     const { error: updateError } = await supabase.from('causes').update({ votes }).eq('slug', slug)
-    if (updateError) throw updateError
+    if (updateError) {
+      console.error('[POST /api/causes/vote] update error:', updateError)
+      return NextResponse.json({ error: updateError.message, code: updateError.code }, { status: 500 })
+    }
 
     return NextResponse.json({ votes })
-  } catch {
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  } catch (e) {
+    console.error('[POST /api/causes/vote] catch:', e)
+    return NextResponse.json({ error: 'Erreur serveur', detail: String(e) }, { status: 500 })
   }
 }
