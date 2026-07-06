@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: causeName ? `Don — ${causeName}` : 'Don général — Judo Club Panonnais',
             description: 'Judo Club Panonnais — 100% reversé au projet. Reçu fiscal automatique.',
-            images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://judoclubpanonnais.fr'}/logo-jcp.jpg`],
+            images: [`${process.env.NEXT_PUBLIC_SITE_URL || 'https://judoclubpanonnais.com'}/logo-jcp.jpg`],
           },
           unit_amount: amount,
         },

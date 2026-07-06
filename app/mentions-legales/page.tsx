@@ -4,7 +4,7 @@ export default function MentionsLegalesPage() {
       <h1 className="text-3xl font-black text-[#1e3a5f] mb-10">Mentions Légales</h1>
       <div className="space-y-8 text-gray-600">
         <div><h2 className="text-xl font-bold text-[#1e3a5f] mb-3">Éditeur du site</h2>
-          <p>Judo Club Panonnais — Association loi 1901<br/>SIRET : 832 172 753 00010<br/>Siège social : Bras Panon, 97412, Île de La Réunion<br/>Email : contact@judoclubpanonnais.fr<br/>Affilié FFJDA</p>
+          <p>Judo Club Panonnais — Association loi 1901<br/>SIRET : 832 172 753 00010<br/>Siège social : Bras Panon, 97412, Île de La Réunion<br/>Email : contact@judoclubpanonnais.com<br/>Affilié FFJDA</p>
         </div>
         <div><h2 className="text-xl font-bold text-[#1e3a5f] mb-3">Hébergeur</h2>
           <p>Ce site est hébergé par Vercel Inc., 340 Pine Street, Suite 701, San Francisco, CA 94104, États-Unis.</p>

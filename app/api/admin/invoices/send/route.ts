@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'Judo Club Panonnais <contact@judoclubpanonnais.fr>',
+        from: process.env.RESEND_FROM_EMAIL || 'Judo Club Panonnais <contact@judoclubpanonnais.com>',
         to: reg.email,
         subject: `Facture n°${invoice.invoice_number} — Judo Club Panonnais`,
         html: `<p>Bonjour ${reg.first_name},</p><p>Veuillez trouver votre facture n°${invoice.invoice_number} d'un montant de ${(invoice.amount / 100).toFixed(2)} € en suivant ce lien :</p><p><a href="${invoiceUrl}">${invoiceUrl}</a></p><p>Merci,<br/>Judo Club Panonnais</p>`,
