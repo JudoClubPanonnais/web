@@ -122,7 +122,7 @@ function InscriptionForm() {
             <CopyField label="Référence à indiquer" value={`${form.lastName} ${form.firstName} — Adhésion 2026-2027`} />
           </div>
           <div className="bg-amber-50 border-t border-amber-200 p-4 text-sm text-amber-800">
-            Les coordonnées définitives seront ajoutées prochainement. En attendant, contactez-nous à <a href="mailto:contact@judoclubpanonnais.fr" className="underline font-medium">contact@judoclubpanonnais.fr</a> pour recevoir le RIB du club.
+            Les coordonnées définitives seront ajoutées prochainement. En attendant, contactez-nous à <a href="mailto:contact@judoclubpanonnais.com" className="underline font-medium">contact@judoclubpanonnais.com</a> pour recevoir le RIB du club.
           </div>
         </div>
       )}
@@ -369,7 +369,7 @@ export default function InscriptionPage() {
             </div>
             <div className="card p-6">
               <h3 className="font-bold text-[#1e3a5f] mb-4">Contact</h3>
-              <p className="text-gray-600 text-sm"><a href="mailto:contact@judoclubpanonnais.fr" className="text-orange-500 hover:underline">contact@judoclubpanonnais.fr</a></p>
+              <p className="text-gray-600 text-sm"><a href="mailto:contact@judoclubpanonnais.com" className="text-orange-500 hover:underline">contact@judoclubpanonnais.com</a></p>
             </div>
             <div className="card p-6">
               <h3 className="font-bold text-[#1e3a5f] mb-4">Tarifs</h3>

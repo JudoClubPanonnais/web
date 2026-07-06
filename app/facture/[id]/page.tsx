@@ -61,7 +61,7 @@ export default function FacturePage() {
               Association loi 1901<br />
               SIRET : 832 172 753 00010<br />
               Siège social : Bras Panon — 97412 — Île de La Réunion<br />
-              contact@judoclubpanonnais.fr
+              contact@judoclubpanonnais.com
             </div>
           </div>
           <div className="text-right">

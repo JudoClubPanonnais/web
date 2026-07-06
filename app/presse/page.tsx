@@ -34,8 +34,8 @@ export default function PressePage() {
               <h2 className="text-2xl font-bold mb-4">Contact presse</h2>
               <p className="text-gray-300 mb-4">Vous êtes journaliste, blogueur ou influenceur et vous souhaitez parler du Judo Club Panonnais ? Nous sommes disponibles pour des interviews, visites du dojo et reportages.</p>
               <div className="space-y-2 text-sm">
-                <p>📧 <a href="mailto:contact@judoclubpanonnais.fr" className="text-orange-400 hover:underline">contact@judoclubpanonnais.fr</a></p>
-                <p>🤝 <a href="mailto:partenariats@judoclubpanonnais.fr" className="text-orange-400 hover:underline">partenariats@judoclubpanonnais.fr</a></p>
+                <p>📧 <a href="mailto:contact@judoclubpanonnais.com" className="text-orange-400 hover:underline">contact@judoclubpanonnais.com</a></p>
+                <p>🤝 <a href="mailto:partenariats@judoclubpanonnais.com" className="text-orange-400 hover:underline">partenariats@judoclubpanonnais.com</a></p>
               </div>
             </div>
             <div className="space-y-3">
@@ -43,7 +43,7 @@ export default function PressePage() {
               {['Logo officiel haute résolution','Photos du club et du dojo','Vidéos des entraînements','Biographie de la présidente','Dossier de présentation 2026'].map((item, i) => (
                 <div key={i} className="flex items-center gap-2 text-sm text-gray-300"><span className="text-orange-400">✓</span> {item}</div>
               ))}
-              <a href="mailto:contact@judoclubpanonnais.fr?subject=Demande kit média JCP" className="btn-primary mt-2 inline-block text-sm">Demander le kit média</a>
+              <a href="mailto:contact@judoclubpanonnais.com?subject=Demande kit média JCP" className="btn-primary mt-2 inline-block text-sm">Demander le kit média</a>
             </div>
           </div>
         </section>
