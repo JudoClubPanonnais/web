@@ -94,6 +94,7 @@ const COURSES = [
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche']
 
 const EVENTS = [
+  { date: '2026-08-24', title: 'Reprise des cours', type: 'evenement', desc: 'Reprise des cours de judo pour la saison 2026–2027.' },
   { date: '2026-09-06', title: 'Rentrée du club — Portes ouvertes', type: 'evenement', desc: 'Venez découvrir le club et essayer le judo gratuitement.' },
   { date: '2026-10-18', title: 'Tournoi départemental Poussins/Benjamins', type: 'competition', desc: 'Compétition officielle FFJDA pour les jeunes.' },
   { date: '2026-11-15', title: 'Stage d\'autodéfense femmes — Gratuit', type: 'stage', desc: 'Stage spécial lutte contre les violences faites aux femmes.' },

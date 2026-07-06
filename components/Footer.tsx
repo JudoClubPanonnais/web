@@ -84,10 +84,9 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-gray-400">
               {[
                 ['/causes/lutte-delinquance', 'Lutte contre la délinquance'],
-                ['/causes/perseverance-scolaire', 'Persévérance scolaire'],
                 ['/causes/inclusion-autisme', 'Inclusion autisme'],
                 ['/causes/violences-femmes', 'Violences faites aux femmes'],
-                ['/causes/decouverte-ailleurs', 'Découverte de l\'ailleurs'],
+                ['/causes/decouverte-ailleurs', "Soutien à l'ambition et échanges sportifs"],
               ].map(([href, label]) => (
                 <li key={href}>
                   <Link href={href} className="hover:text-orange-400 transition-colors">{label}</Link>

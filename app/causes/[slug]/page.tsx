@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 
 const CAUSES_DATA: Record<string, {
   name: string; icon: string; color: string; bg: string;
-  tagline: string; description: string; actions: string[]; budget: number; impact: string[];
+  tagline: string; description: string; actions: string[]; impact: string[];
 }> = {
   'lutte-delinquance': {
     name: "Lutte contre la délinquance et l'errance juvéniles",
@@ -19,23 +19,7 @@ const CAUSES_DATA: Record<string, {
       'Passeport sportif vers la réinsertion : engagement, responsabilisation, projet de vie',
       'Sorties et activités citoyennes complémentaires',
     ],
-    budget: 3500,
     impact: ['10 jeunes en rupture accompagnés par saison', 'Cours hebdomadaires gratuits', 'Suivi individualisé par éducateur sportif', 'Partenariats actifs'],
-  },
-  'perseverance-scolaire': {
-    name: 'Persévérance scolaire',
-    icon: '📚', color: 'from-blue-500 to-blue-700', bg: 'bg-blue-500',
-    tagline: 'Le lien entre sport, école et famille pour que chaque enfant tienne bon',
-    description: "Le judo apprend à tomber et se relever. Cette résilience se transfère en classe. Nous créons le lien entre sport, école et famille pour que chaque enfant tienne bon. La discipline du tatami, la gestion de l'effort et la confiance en soi acquises dans notre dojo sont des outils précieux pour la réussite scolaire.",
-    actions: [
-      'Charte sport-école avec les établissements scolaires de la commune',
-      'Ateliers concentration, gestion du stress et confiance en soi',
-      'Accompagnement et suivi du parcours scolaire des bénéficiaires',
-      'Récompense du mérite scolaire au sein du club (cérémonies, distinctions)',
-      "Sensibilisation des familles à l'importance de l'engagement scolaire",
-    ],
-    budget: 2800,
-    impact: ['Conventionnement avec des établissements scolaires du territoire', 'Ateliers mensuels de gestion du stress', 'Suivi des bulletins scolaires', 'Cérémonie annuelle de remise des prix'],
   },
   'inclusion-autisme': {
     name: 'Inclusion autisme et sport',
@@ -49,7 +33,6 @@ const CAUSES_DATA: Record<string, {
       'Bilan annuel',
       "Faciliter l'accessibilité de la pratique sportive aux personnes atteintes du TSA",
     ],
-    budget: 4200,
     impact: ['1 créneau dédié hebdomadaire', 'Formateurs certifiés TSA', 'Partenariats locaux actifs', 'Participation aux championnats handisport'],
   },
   'violences-femmes': {
@@ -64,14 +47,13 @@ const CAUSES_DATA: Record<string, {
       "Sensibilisation dans les établissements scolaires et les structures d'hébergement",
       "Accompagnement vers un parcours judo régulier si souhaité",
     ],
-    budget: 3000,
     impact: ['Stages gratuits chaque trimestre', 'Espace non-mixte et confidentiel', 'Partenariats actifs', '30 femmes accompagnées par an'],
   },
   'decouverte-ailleurs': {
-    name: "Découverte de l'ailleurs et ouverture au monde",
+    name: "Soutien à l'ambition et échanges sportifs",
     icon: '✈️', color: 'from-emerald-500 to-emerald-700', bg: 'bg-emerald-500',
-    tagline: 'Le judo est une langue universelle. Partout où on pose un tatami, on se comprend.',
-    description: "Le judo est une langue universelle. Partout où l'on pose un tatami, on se comprend. Nos voyages sportifs et culturels apprennent à nos pratiquants que l'autre — qu'il soit adversaire, partenaire ou hôte — est toujours une source inépuisable d'enrichissement.",
+    tagline: "Accompagner l'ambition sportive de nos judokas et favoriser les échanges avec d'autres clubs.",
+    description: "Le judo est une langue universelle. Partout où l'on pose un tatami, on se comprend. Nous accompagnons l'ambition sportive de nos pratiquants et organisons des échanges avec d'autres clubs : l'autre — qu'il soit adversaire, partenaire ou hôte — est toujours une source inépuisable d'enrichissement.",
     actions: [
       "Organisation de voyages sportifs et culturels en France et à l'étranger",
       "Échanges de pratiques avec des clubs étrangers : partager son judo, découvrir celui de l'autre",
@@ -80,7 +62,6 @@ const CAUSES_DATA: Record<string, {
       "Apprentissage des rituels, saluts et philosophies propres à chaque pays pratiquant le judo",
       "Création d'un carnet de voyage collectif — support pédagogique pour les classes partenaires",
     ],
-    budget: 5000,
     impact: ["1 voyage à l'étranger par saison", 'Échanges avec clubs japonais et européens', 'Accueil de judokas étrangers', 'Carnet de voyage pédagogique'],
   },
 }
@@ -92,6 +73,7 @@ export default function CausePage() {
   const cause = CAUSES_DATA[slug]
   const [votes, setVotes] = useState(0)
   const [votedSlug, setVotedSlug] = useState<string | null>(null)
+  const [voteError, setVoteError] = useState('')
 
   useEffect(() => {
     setVotedSlug(localStorage.getItem(VOTE_STORAGE_KEY))
@@ -105,12 +87,18 @@ export default function CausePage() {
 
   async function vote() {
     if (votedSlug) return
-    setVotedSlug(slug)
-    localStorage.setItem(VOTE_STORAGE_KEY, slug)
+    setVoteError('')
     try {
       const res = await fetch('/api/causes/vote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ slug }) })
-      if (res.ok) { const d = await res.json(); setVotes(d.votes) }
-    } catch {}
+      const d = await res.json().catch(() => null)
+      if (res.ok && typeof d?.votes === 'number') {
+        setVotedSlug(slug)
+        localStorage.setItem(VOTE_STORAGE_KEY, slug)
+        setVotes(d.votes)
+      } else {
+        setVoteError(d?.error || 'Le vote n\'a pas pu être enregistré. Réessayez.')
+      }
+    } catch (e) { setVoteError(`Erreur réseau : ${String(e)}`) }
   }
 
   if (!cause) return (
@@ -149,6 +137,7 @@ export default function CausePage() {
               {votedSlug === slug ? '✓ Vous avez voté' : 'Voter pour cette cause'}
             </button>
           </div>
+          {voteError && <p className="text-red-200 text-sm mt-3">{voteError}</p>}
         </div>
       </section>
 
@@ -195,14 +184,8 @@ export default function CausePage() {
               </Link>
 
               <div className="mt-4 pt-4 border-t border-gray-100 space-y-2 text-sm text-gray-500">
-                <p>✅ Reçu fiscal automatique</p>
                 <p>💸 100% reversé au projet</p>
                 <p>🔒 Paiement sécurisé HelloAsso</p>
-                <p>📊 66% déductible (particuliers)</p>
-              </div>
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Budget nécessaire pour cette cause</div>
-                <div className="text-2xl font-black text-[#1e3a5f]">{cause.budget.toLocaleString('fr-FR')} €</div>
               </div>
             </div>
           </div>
